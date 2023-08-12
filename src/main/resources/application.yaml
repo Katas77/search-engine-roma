@@ -21,6 +21,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
 
+
+#server:
+#  servlet:
+#    context-path: /admin
+
+
+#logging:
+#  level:
+#    org.springframework.web: trace
+#    org.apache: trace

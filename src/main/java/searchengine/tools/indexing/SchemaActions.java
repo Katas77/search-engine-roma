@@ -1,12 +1,10 @@
 package searchengine.tools.indexing;
 
-import com.sun.istack.NotNull;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-
 import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -37,19 +35,20 @@ public class SchemaActions {
 	private final IndexRepository indexRepository;
 
 
-	public @NotNull Set<SiteEntity> setSites() {
+	public Set<SiteEntity> setSites() {
+		sitesList.getSites().forEach(site -> System.out.println(site.getName()));
 		indexRepository.deleteAllInBatch();
 		lemmaRepository.deleteAllInBatch();
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
 		Set<SiteEntity> newSites = new HashSet<>();
 
-			sitesList.getSites().forEach(getSt -> newSites.add(getSiteEntity(getSt)));
+			sitesList.getSites().forEach(site -> newSites.add(getSiteEntity(site)));
 
-		newSites.forEach(e -> {
-			if (!siteRepository.existsByUrl(e.getUrl())) {
-				log.warn("SiteEntity name " + e.getName() + " with URL " + e.getUrl() + " saving in table");
-				siteRepository.save(e);
+		newSites.forEach(entity -> {
+			if (!siteRepository.existsByUrl(entity.getUrl())) {
+				log.warn("SiteEntity name " + entity.getName() + " with URL " + entity.getUrl() + " saving in table");
+				siteRepository.save(entity);
 			}
 		});
 
@@ -57,7 +56,7 @@ public class SchemaActions {
 		return newSites;
 	}
 
-	private @NotNull SiteEntity getSiteEntity(@NotNull Site newSite) {
+	private  SiteEntity getSiteEntity(Site newSite) {
 		SiteEntity result;
 		SiteEntity existingSite = siteRepository.findByUrl(newSite.getUrl());
 		if (existingSite != null) {
@@ -72,7 +71,7 @@ public class SchemaActions {
 
 
 
-	private void clearRelatedTables(@NotNull SiteEntity site) {
+	private void clearRelatedTables( SiteEntity site) {
 		log.info("Site " + site.getName() + " " + site.getUrl() + " found in table");
 		log.warn("Updating " + site.getName() + " " + site.getUrl() + " status and time");
 		site.setStatus(IndexingStatus.INDEXING);
@@ -147,18 +146,18 @@ public class SchemaActions {
 	}
 
 	private @Nullable Site findSiteInConfig(String hostName) {
-		for (Site s : sitesList.getSites()) {
-			if (s.getUrl()
+		for (Site site : sitesList.getSites()) {
+			if (site.getUrl()
 					.toLowerCase(Locale.ROOT)
 					.equals(hostName.toLowerCase(Locale.ROOT))) {
-				return s;
+				return site;
 			}
 		}
 		return null;
 	}
 
 
-	private @NotNull SiteEntity initSiteRow(@NotNull Site site) {
+	private  SiteEntity initSiteRow( Site site) {
 		SiteEntity siteEntity = new SiteEntity();
 		siteEntity.setStatus(IndexingStatus.INDEXING);
 		siteEntity.setStatusTime(LocalDateTime.now());
@@ -169,7 +168,7 @@ public class SchemaActions {
 	}
 
 
-	private void decreaseLemmasFreqByPage(@NotNull List<PageEntity> pageEntities) {
+	private void decreaseLemmasFreqByPage( List<PageEntity> pageEntities) {
 		log.warn("Start decreasing freq of lemmas of deleted pages");
 
 		List<IndexEntity> indexForLemmaDecreaseFreq = indexRepository.findAllByPageEntityIn(pageEntities);

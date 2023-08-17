@@ -12,7 +12,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
@@ -45,7 +44,7 @@ public class ScrapingAction extends RecursiveAction {
 	private SiteEntity siteEntity;
 	private PageEntity pageEntity;
 	private Set<String> childLinksOfTask;
-	private Connection.Response jsoupResponse = null;
+	private Connection.Response response = null;
 	private BlockingQueue<PageEntity> outcomeQueue;
 	private Environment environment;
 	private final PageRepository pageRepository;
@@ -53,7 +52,7 @@ public class ScrapingAction extends RecursiveAction {
 	private static final AcceptableContentTypes ACCEPTABLE_CONTENT_TYPES = new AcceptableContentTypes();
 
 	public ScrapingAction(String currentUrl,
-	                      @NotNull SiteEntity siteEntity,
+	                       SiteEntity siteEntity,
 	                      BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
 		this.siteEntity = siteEntity;
 		this.outcomeQueue = outcomeQueue;
@@ -69,9 +68,8 @@ public class ScrapingAction extends RecursiveAction {
 		if (!enabled)
 			return;
 
-
-		jsoupResponse = getResponseFromUrl(currentUrl);
-		if (jsoupResponse != null) {
+		response = getResponseFromUrl(currentUrl);
+		if (response != null) {
 			saveExtractedPage();
 
 			final Elements elements = document.select("a[href]");
@@ -129,12 +127,13 @@ public class ScrapingAction extends RecursiveAction {
 		lock.readLock().unlock();
 
 		try {
-			jsoupResponse = Jsoup.connect(url).execute();
-			if (ACCEPTABLE_CONTENT_TYPES.contains(jsoupResponse.contentType())) {
-				document = jsoupResponse.parse();
+			response = Jsoup.connect(url).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+					.referrer("http://www.google.com").execute();
+			if (ACCEPTABLE_CONTENT_TYPES.contains(response.contentType())) {
+				document = response.parse();
 				parentPath = "/" + url.replace(homeUrl, "");
 				cleanHtmlContent();
-				pageEntity = new PageEntity(siteEntity, jsoupResponse.statusCode(), document.html(), parentPath);
+				pageEntity = new PageEntity(siteEntity, response.statusCode(), document.html(), parentPath);
 			} else
 				return null;
 		} catch (IOException | UncheckedIOException exception) {
@@ -145,7 +144,7 @@ public class ScrapingAction extends RecursiveAction {
 			log.info("Response from " + url + " got successfully");
 		}
 
-		return jsoupResponse;
+		return response;
 	}
 
 	private void urlNotAvailableActions(String url, @NotNull Exception exception) {

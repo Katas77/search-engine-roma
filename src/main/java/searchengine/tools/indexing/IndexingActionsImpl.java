@@ -54,7 +54,7 @@ public class IndexingActionsImpl implements IndexingActions {
     private final LemmasAndIndexCollectingService lemmasAndIndexCollectingService;
 
     @Override
-    public void startFullIndexing(@NotNull Set<SiteEntity> siteEntities) {
+    public void startFullIndexing( Set<SiteEntity> siteEntities) {
         log.warn("Full indexing will be started now");
 
         ForkJoinPool pool = new ForkJoinPool();
@@ -86,13 +86,13 @@ public class IndexingActionsImpl implements IndexingActions {
         setIndexingActionsStarted(false);
     }
 
-    private void lemmasThreadBody(SiteEntity siteEntity, @NotNull CountDownLatch latch) {
+    private void lemmasThreadBody(SiteEntity siteEntity,  CountDownLatch latch) {
         lemmasCollectingActions(siteEntity);
         latch.countDown();
         log.warn("lemmas-finding-thread finished, latch =  " + latch.getCount());
     }
 
-    private void crawlThreadBody(ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
+    private void crawlThreadBody(ForkJoinPool pool, SiteEntity siteEntity,  CountDownLatch latch) {
         action = new ScrapingAction(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 

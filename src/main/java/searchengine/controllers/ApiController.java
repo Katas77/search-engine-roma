@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import searchengine.config.SitesList;
 import searchengine.model.IndexingStatus;
 import searchengine.model.SiteEntity;
@@ -24,11 +25,13 @@ import searchengine.storage.OkResponse;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
+
 public class ApiController {
 
 	private final SearchService searchService;
 	private final IndexingService indexingService;
 	private final StatisticsService statisticsService;
+
 	@Autowired
 	SiteRepository siteRepository;
 
@@ -41,6 +44,7 @@ public class ApiController {
 
 	@GetMapping("/startIndexing")
 	public ResponseEntity<Object> startIndexing() {
+
 		if (isIndexing())
 			return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
 					HttpStatus.BAD_REQUEST);

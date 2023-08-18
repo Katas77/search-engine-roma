@@ -2,7 +2,6 @@ package searchengine.tools.indexing;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -52,8 +51,8 @@ public class ScrapingAction extends RecursiveAction {
 	private static final AcceptableContentTypes ACCEPTABLE_CONTENT_TYPES = new AcceptableContentTypes();
 
 	public ScrapingAction(String currentUrl,
-	                       SiteEntity siteEntity,
-	                      BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
+						  SiteEntity siteEntity,
+						  BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
 		this.siteEntity = siteEntity;
 		this.outcomeQueue = outcomeQueue;
 		this.currentUrl = currentUrl;
@@ -67,25 +66,22 @@ public class ScrapingAction extends RecursiveAction {
 	protected void compute() {
 		if (!enabled)
 			return;
-
 		response = getResponseFromUrl(currentUrl);
-		if (response != null) {
-			saveExtractedPage();
 
-			final Elements elements = document.select("a[href]");
-			if (!elements.isEmpty()) {
-				childLinksOfTask = getChildLinks(currentUrl, elements);
-			}
-
-			if (childLinksOfTask != null) forkAndJoinTasks();
+		saveExtractedPage();
+		final Elements elements = document.select("a[href]");
+		if (!elements.isEmpty()) {
+			childLinksOfTask = getChildLinks(currentUrl, elements);
 		}
+		forkAndJoinTasks();
+
 	}
 
 	public Set<String> getChildLinks(String url, Elements elements) {
 		Set<String> newChildLinks = new HashSet<>();
 
 		for (Element element : elements) {
-			final String href = getHrefFromElement(element).toLowerCase(Locale.ROOT);
+			final String href = getHrefFromElement(element).toLowerCase();
 
 			lock.readLock().lock();
 			if (visitedLinks.containsKey(href))
@@ -117,7 +113,6 @@ public class ScrapingAction extends RecursiveAction {
 						| !extractedHref.matches(URL_IS_FILE_LINK));
 	}
 
-
 	private Connection.@Nullable Response getResponseFromUrl(String url) {
 
 		lock.readLock().lock();
@@ -143,11 +138,10 @@ public class ScrapingAction extends RecursiveAction {
 		if (Objects.equals(environment.getProperty("user-settings.logging-enable"), "true")) {
 			log.info("Response from " + url + " got successfully");
 		}
-
 		return response;
 	}
 
-	private void urlNotAvailableActions(String url, @NotNull Exception exception) {
+	private void urlNotAvailableActions(String url, Exception exception) {
 		siteEntity.setLastError(exception.getMessage());
 		siteEntity.setStatusTime(LocalDateTime.now());
 		internPage404(url);
@@ -168,14 +162,14 @@ public class ScrapingAction extends RecursiveAction {
 	}
 
 	private void saveExtractedPage() {
-			lock.readLock().lock();
-			if (!savedPaths.containsKey(parentPath)){
-				pageRepository.save(pageEntity);
-				internSavedPath(pageEntity.getPath());
-				putPageEntityToOutcomeQueue();
-				writeLogAboutEachPage();
-			}
-			lock.readLock().unlock();
+		lock.readLock().lock();
+		if (!savedPaths.containsKey(parentPath)) {
+			pageRepository.save(pageEntity);
+			internSavedPath(pageEntity.getPath());
+			putPageEntityToOutcomeQueue();
+			writeLogAboutEachPage();
+		}
+		lock.readLock().unlock();
 	}
 
 	private void forkAndJoinTasks() {
@@ -196,7 +190,7 @@ public class ScrapingAction extends RecursiveAction {
 		for (ScrapingAction task : subTasks) task.join();
 	}
 
-	private boolean childIsValidToFork(@NotNull String subLink) {
+	private boolean childIsValidToFork(String subLink) {
 		final String ext = subLink.substring(subLink.length() - 4);
 		return (HTML_EXT.stream().anyMatch(ext::contains) | !subLink.matches(URL_IS_FILE_LINK));
 	}

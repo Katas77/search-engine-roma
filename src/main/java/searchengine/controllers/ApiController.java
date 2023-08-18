@@ -5,20 +5,16 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import searchengine.config.SitesList;
 import searchengine.model.IndexingStatus;
-import searchengine.model.SiteEntity;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.IndexingService;
+import searchengine.services.indexing.IndexingService;
 import searchengine.dto.search.SearchResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.services.SearchService;
+import searchengine.services.search.SearchService;
 import searchengine.dto.statistics.StatisticsResponse;
-import searchengine.services.StatisticsService;
+import searchengine.services.statistic.StatisticsService;
 import searchengine.storage.BadRequest;
-import searchengine.storage.OkResponse;
 
 @Slf4j
 @Setter

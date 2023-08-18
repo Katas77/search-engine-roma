@@ -1,4 +1,4 @@
-package searchengine.services.impl;
+package searchengine.services.indexing;
 
 import com.sun.istack.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.SearchService;
+import searchengine.services.search.SearchService;
 import searchengine.tools.LemmaFinder;
 import searchengine.tools.SnippetGenerator;
 

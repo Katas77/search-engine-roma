@@ -1,4 +1,4 @@
-package searchengine.services.impl;
+package searchengine.services.indexing;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.model.*;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.IndexingService;
+import searchengine.services.indexing.IndexingService;
 import searchengine.storage.BadRequest;
 import searchengine.storage.OkResponse;
 import searchengine.tools.indexing.IndexingActions;
@@ -35,7 +35,7 @@ public class IndexingServiceImpl implements IndexingService {
 
         Set<SiteEntity> siteEntities = schemaActions.setSites();
         if (siteEntities.size() == 0)
-            return new ResponseEntity<>(new BadRequest(false, "Индексацию запустить не удалось. Пустой  список сайтов"),
+            return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
 
         thread = new Thread(() -> indexingActions.startFullIndexing(siteEntities), "indexing-thread");

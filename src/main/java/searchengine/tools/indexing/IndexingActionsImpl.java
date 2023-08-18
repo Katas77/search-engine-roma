@@ -86,13 +86,13 @@ public class IndexingActionsImpl implements IndexingActions {
         setIndexingActionsStarted(false);
     }
 
-    private void lemmasThreadBody(SiteEntity siteEntity,  CountDownLatch latch) {
+    private void lemmasThreadBody(SiteEntity siteEntity, CountDownLatch latch) {
         lemmasCollectingActions(siteEntity);
         latch.countDown();
         log.warn("lemmas-finding-thread finished, latch =  " + latch.getCount());
     }
 
-    private void crawlThreadBody(ForkJoinPool pool, SiteEntity siteEntity,  CountDownLatch latch) {
+    private void crawlThreadBody(ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
         action = new ScrapingAction(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 
@@ -199,7 +199,7 @@ public class IndexingActionsImpl implements IndexingActions {
         }
     }
 
-    private void writeLogBeforeIndexing(@NotNull SiteEntity siteEntity) {
+    private void writeLogBeforeIndexing( SiteEntity siteEntity) {
         log.info(siteEntity.getName() + " with URL " + siteEntity.getUrl() + " started indexing");
         log.info(pageRepository.count() + " pages, "
                 + lemmaRepository.count() + " lemmas, "

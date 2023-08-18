@@ -1,4 +1,4 @@
-package searchengine.services.impl;
+package searchengine.services.statistic;
 
 import com.sun.istack.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.StatisticsService;
+import searchengine.services.statistic.StatisticsService;
 import searchengine.tools.indexing.IndexingActions;
 
 import java.time.ZoneId;

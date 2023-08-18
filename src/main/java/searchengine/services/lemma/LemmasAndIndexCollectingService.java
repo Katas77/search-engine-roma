@@ -1,4 +1,4 @@
-package searchengine.tools.indexing;
+package searchengine.services.lemma;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;

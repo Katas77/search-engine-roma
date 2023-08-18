@@ -15,8 +15,7 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.statistic.StatisticsService;
-import searchengine.tools.indexing.IndexingActions;
+import searchengine.services.indexing.IndexingActions;
 
 import java.time.ZoneId;
 import java.util.ArrayList;

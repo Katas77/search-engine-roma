@@ -1,4 +1,4 @@
-package searchengine.tools.indexing;
+package searchengine.services.indexing;
 
 import com.sun.istack.NotNull;
 import lombok.Getter;
@@ -19,6 +19,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.tools.StringPool;
 import searchengine.tools.UrlFormatter;
+import searchengine.services.lemma.LemmasAndIndexCollectingService;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -92,7 +93,7 @@ public class IndexingActionsImpl implements IndexingActions {
         log.warn("lemmas-finding-thread finished, latch =  " + latch.getCount());
     }
 
-    private void crawlThreadBody(ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
+    private void crawlThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
         action = new ScrapingAction(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 

@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.services.search;
 
 import com.sun.istack.NotNull;
 import lombok.RequiredArgsConstructor;

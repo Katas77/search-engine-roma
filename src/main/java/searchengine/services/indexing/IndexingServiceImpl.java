@@ -6,11 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.model.*;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.indexing.IndexingService;
-import searchengine.storage.BadRequest;
-import searchengine.storage.OkResponse;
-import searchengine.tools.indexing.IndexingActions;
-import searchengine.tools.indexing.SchemaActions;
+import searchengine.request.BadRequest;
+import searchengine.request.OkResponse;
 
 import java.util.*;
 

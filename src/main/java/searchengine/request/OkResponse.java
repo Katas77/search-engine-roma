@@ -1,4 +1,4 @@
-package searchengine.storage;
+package searchengine.request;
 
 import lombok.Value;
 

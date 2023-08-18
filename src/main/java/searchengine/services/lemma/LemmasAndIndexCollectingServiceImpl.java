@@ -1,4 +1,4 @@
-package searchengine.tools.indexing;
+package searchengine.services.lemma;
 
 import com.sun.istack.NotNull;
 import lombok.Getter;
@@ -13,6 +13,7 @@ import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
+import searchengine.services.lemma.LemmasAndIndexCollectingService;
 import searchengine.tools.LemmaFinder;
 
 import java.util.*;

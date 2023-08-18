@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import searchengine.services.search.SearchService;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.services.statistic.StatisticsService;
-import searchengine.storage.BadRequest;
+import searchengine.request.BadRequest;
 
 @Slf4j
 @Setter

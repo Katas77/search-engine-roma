@@ -1,4 +1,5 @@
 package searchengine.services.indexing;
+
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import searchengine.request.BadRequest;
 import searchengine.request.OkResponse;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Setter
@@ -19,27 +21,23 @@ import java.util.*;
 
 public class IndexingServiceImpl implements IndexingService {
 
-    private final SchemaActions schemaActions;
+    private final SchemaMake schemaActions;
     private final IndexingActions indexingActions;
     private Thread thread;
     public SiteRepository siteRepository;
-
+    ExecutorService executorService;
 
     @Override
     public ResponseEntity<Object> indexingStart() {
-
         log.warn("метод startIndexing запущен");
-
         Set<SiteEntity> siteEntities = schemaActions.setSites();
         if (siteEntities.size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
 
-        thread = new Thread(() -> indexingActions.startFullIndexing(siteEntities), "indexing-thread");
+        thread = new Thread(() -> indexingActions.startTreadsIndexing(siteEntities), "indexing-thread");
         thread.start();
-
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
-
     }
 
     @Override
@@ -75,15 +73,12 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
                     HttpStatus.BAD_REQUEST);
 
-        setEnabled(false);
+        indexingActions.setOffOn(false);
         indexingActions.setIndexingActionsStarted(false);
 
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
 
-    public void setEnabled(boolean value) {
-        indexingActions.setEnabled(value);
-    }
 
 
 }

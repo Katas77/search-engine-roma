@@ -25,7 +25,7 @@ import java.util.*;
 @Setter
 @RequiredArgsConstructor
 @Component
-public class SchemaActions {
+public class SchemaMake {
 
 	private final SitesList sitesList;
 	private final Environment environment;
@@ -60,6 +60,8 @@ public class SchemaActions {
 		SiteEntity result;
 		SiteEntity existingSite = siteRepository.findByUrl(newSite.getUrl());
 		if (existingSite != null) {
+			System.out.println("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+
 			clearRelatedTables(existingSite);
 			result = existingSite;
 		} else {
@@ -74,7 +76,7 @@ public class SchemaActions {
 	private void clearRelatedTables( SiteEntity site) {
 		log.info("Site " + site.getName() + " " + site.getUrl() + " found in table");
 		log.warn("Updating " + site.getName() + " " + site.getUrl() + " status and time");
-		site.setStatus(IndexingStatus.INDEXING);
+		site.setStatus(Status.INDEXING);
 		site.setLastError("");
 		site.setStatusTime(LocalDateTime.now());
 
@@ -159,7 +161,7 @@ public class SchemaActions {
 
 	private  SiteEntity initSiteRow( Site site) {
 		SiteEntity siteEntity = new SiteEntity();
-		siteEntity.setStatus(IndexingStatus.INDEXING);
+		siteEntity.setStatus(Status.INDEXING);
 		siteEntity.setStatusTime(LocalDateTime.now());
 		siteEntity.setLastError("");
 		siteEntity.setUrl(site.getUrl());
@@ -189,5 +191,6 @@ public class SchemaActions {
 			else lemmaEntity.setFrequency(oldFreq - 1);
 		}
 	}
+
 
 }

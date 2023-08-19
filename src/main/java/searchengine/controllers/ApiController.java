@@ -5,7 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import searchengine.model.IndexingStatus;
+import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingService;
 import searchengine.dto.search.SearchResponse;
@@ -35,6 +35,7 @@ public class ApiController {
 
 	@GetMapping("/statistics")
 	public ResponseEntity<StatisticsResponse> statistics() {
+
 		return ResponseEntity.ok(statisticsService.getStatistics());
 	}
 
@@ -68,7 +69,7 @@ public class ApiController {
 		return ResponseEntity.ok(searchService.getSearchResults(query, site, offset, limit));
 	}
 	private boolean isIndexing() {
-		return siteRepository.existsByStatus(IndexingStatus.INDEXING);
+		return siteRepository.existsByStatus(Status.INDEXING);
 	}
 
 }

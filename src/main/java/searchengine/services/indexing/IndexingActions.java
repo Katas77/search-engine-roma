@@ -4,7 +4,7 @@ import java.util.Set;
 
 public interface IndexingActions {
 
-	void startFullIndexing(Set<SiteEntity> siteEntities);
+	void startTreadsIndexing(Set<SiteEntity> siteEntities);
 
 	void startPartialIndexing(SiteEntity siteEntity);
 
@@ -12,6 +12,6 @@ public interface IndexingActions {
 
 	boolean isIndexingActionsStarted();
 
-	void setEnabled(boolean value);
+	void setOffOn(boolean value);
 }
 

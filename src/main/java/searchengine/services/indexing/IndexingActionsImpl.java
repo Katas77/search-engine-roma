@@ -10,7 +10,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
-import searchengine.model.IndexingStatus;
+import searchengine.model.Status;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
@@ -19,7 +19,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.tools.StringPool;
 import searchengine.tools.UrlFormatter;
-import searchengine.services.lemma.LemmasAndIndexCollectingService;
+import searchengine.services.lemma.LemmaService;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -41,10 +41,10 @@ public class IndexingActionsImpl implements IndexingActions {
             "Ошибка индексации: сайт не доступен",
             ""};
 
-    private Boolean enabled = true;
+    private Boolean offOn = true;
     private SiteEntity siteEntity;
     private BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting = new LinkedBlockingQueue<>(1_000);
-    private ScrapingAction action;
+    private RecursiveMake action;
     private boolean indexingActionsStarted = false;
     private final SitesList sitesList;
     private final Environment environment;
@@ -52,23 +52,18 @@ public class IndexingActionsImpl implements IndexingActions {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final SiteRepository siteRepository;
-    private final LemmasAndIndexCollectingService lemmasAndIndexCollectingService;
+    private final LemmaService lemmasAndIndexCollectingService;
 
     @Override
-    public void startFullIndexing( Set<SiteEntity> siteEntities) {
+    public void startTreadsIndexing(Set<SiteEntity> siteEntities) {
         log.warn("Full indexing will be started now");
-
         ForkJoinPool pool = new ForkJoinPool();
         setIndexingActionsStarted(true);
-
-
         for (SiteEntity siteEntity : siteEntities) {
-
-            if (!enabled) {
+            if (!offOn) {
                 stopPressedActions(pool);
                 break;
             }
-
             CountDownLatch latch = new CountDownLatch(2);
             writeLogBeforeIndexing(siteEntity);
 
@@ -94,7 +89,7 @@ public class IndexingActionsImpl implements IndexingActions {
     }
 
     private void crawlThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
-        action = new ScrapingAction(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
+        action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 
         latch.countDown();
@@ -109,7 +104,7 @@ public class IndexingActionsImpl implements IndexingActions {
         log.warn("Partial indexing will be started now");
         Set<SiteEntity> oneEntitySet = new HashSet<>();
         oneEntitySet.add(siteEntity);
-        startFullIndexing(oneEntitySet);
+        startTreadsIndexing(oneEntitySet);
     }
 
     private void lemmasCollectingActions(SiteEntity siteEntity) {
@@ -124,13 +119,13 @@ public class IndexingActionsImpl implements IndexingActions {
     private void stopPressedActions(ForkJoinPool pool) {
 
         try {
-            log.warn("STOP pressed by user");
+            log.warn("STOP pressed");
             Thread.sleep(5_000);
         } catch (InterruptedException e) {
-            log.error("I don't want to sleep");
+            System.out.println(e.getMessage());
         } finally {
             pool.shutdownNow();
-            setEnabled(true);
+            setOffOn(true);
             setIndexingActionsStarted(false);
 
         }
@@ -142,34 +137,34 @@ public class IndexingActionsImpl implements IndexingActions {
     }
 
     @Override
-    public void setEnabled(boolean value) {
-        enabled = value;
+    public void setOffOn(boolean value) {
+        offOn = value;
         lemmasAndIndexCollectingService.setEnabled(value);
-        ScrapingAction.enabled = value;
+        RecursiveMake.offOn = value;
     }
 
     private void doActionsAfterIndexing(@NotNull SiteEntity siteEntity) {
-        siteEntity.setStatus(IndexingStatus.INDEXED);
+        siteEntity.setStatus(Status.INDEXED);
         siteEntity.setLastError("");
         siteEntity.setStatusTime(LocalDateTime.now());
         int countPages = pageRepository.countBySiteEntity(siteEntity);
         switch (countPages) {
             case 0 -> {
-                siteEntity.setStatus(IndexingStatus.FAILED);
+                siteEntity.setStatus(Status.FAILED);
                 siteEntity.setLastError(errors[0]);
             }
             case 1 -> {
-                siteEntity.setStatus(IndexingStatus.FAILED);
+                siteEntity.setStatus(Status.FAILED);
                 siteEntity.setLastError(errors[1]);
             }
         }
-        if (enabled) {
+        if (offOn) {
             log.warn("Status of site " + siteEntity.getName()
                     + " set to " + siteEntity.getStatus().toString()
                     + ", error set to " + siteEntity.getLastError());
         } else {
             siteEntity.setLastError("Индексация остановлена пользователем");
-            siteEntity.setStatus(IndexingStatus.FAILED);
+            siteEntity.setStatus(Status.FAILED);
             log.warn("Status of site " + siteEntity.getName()
                     + " set to " + siteEntity.getStatus().toString()
                     + ", error set to " + siteEntity.getLastError());

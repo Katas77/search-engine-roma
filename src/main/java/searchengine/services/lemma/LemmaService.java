@@ -5,7 +5,7 @@ import searchengine.model.SiteEntity;
 
 import java.util.concurrent.BlockingQueue;
 
-public interface LemmasAndIndexCollectingService {
+public interface LemmaService {
 
 	void setIncomeQueue(BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting);
 	void setSiteEntity(SiteEntity siteEntity);

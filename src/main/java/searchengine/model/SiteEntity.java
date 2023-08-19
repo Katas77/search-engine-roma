@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class SiteEntity {
 
-	public SiteEntity(IndexingStatus status, LocalDateTime statusTime, String lastError, String url, String name) {
+	public SiteEntity(Status status, LocalDateTime statusTime, String lastError, String url, String name) {
 		this.status = status;
 		this.statusTime = statusTime;
 		this.lastError = lastError;
@@ -32,12 +32,12 @@ public class SiteEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private IndexingStatus status;
+	private Status status;
 
 	@Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
 	private LocalDateTime statusTime;
 
-	@Column(columnDefinition = "TEXT", name = "last_error", length = 500)
+	@Column(columnDefinition = "TEXT", name = "last_error", length = 700)
 	private String lastError;
 
 	@Column(columnDefinition = "VARCHAR(255)", nullable = false)

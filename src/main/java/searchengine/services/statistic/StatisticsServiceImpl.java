@@ -17,10 +17,12 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingActions;
 
+import javax.persistence.NonUniqueResultException;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Service
@@ -28,39 +30,42 @@ import java.util.List;
 
 public class StatisticsServiceImpl implements StatisticsService {
 
-	private final SitesList sites;
-	private final IndexingActions indexingActions;
-	private final SiteRepository siteRepository;
-	private final PageRepository pageRepository;
-	private final LemmaRepository lemmaRepository;
+    private final SitesList sites;
+    private final IndexingActions indexingActions;
+    private final SiteRepository siteRepository;
+    private final PageRepository pageRepository;
+    private final LemmaRepository lemmaRepository;
 
-	@Override
-	public StatisticsResponse getStatistics() {
-		log.warn("Mapping /statistics executed");
-		int totalPages = 0;
-		int totalLemmas = 0;
 
-		List<DetailedStatisticsItem> detailed = new ArrayList<>();
+    @Override
+    public StatisticsResponse getStatistics() {
+        log.warn("Mapping /statistics executed");
+        int totalPages = 0;
+        int totalLemmas = 0;
 
-		List<Site> sitesList = sites.getSites();
-		for (Site site : sitesList) {
-			SiteEntity siteEntity = siteRepository.findByUrl(site.getUrl());
-			if (siteEntity != null) {
-				int pages = pageRepository.countBySiteEntity(siteEntity);
-				int lemmas = lemmaRepository.countBySiteEntity(siteEntity);
-				totalPages += pages;
-				totalLemmas += lemmas;
-
-				DetailedStatisticsItem item = getDetailedStatisticsItem(site, pages, lemmas, siteEntity);
-				detailed.add(item);
-			}
-		}
-
+        List<DetailedStatisticsItem> detailed = new ArrayList<>();
+        try {
+            List<Site> sitesList = sites.getSites();
+            for (Site site : sitesList) {
+                SiteEntity siteEntity = siteRepository.findByUrl(site.getUrl());
+                if (siteEntity != null) {
+                    int pages = pageRepository.countBySiteEntity(siteEntity);
+                    int lemmas = lemmaRepository.countBySiteEntity(siteEntity);
+                    totalPages += pages;
+                    totalLemmas += lemmas;
+                    DetailedStatisticsItem item = getDetailedStatisticsItem(site, pages, lemmas, siteEntity);
+                    detailed.add(item);
+                }
+            }
+        } catch (NonUniqueResultException exception) {
+            System.out.println(exception.getMessage());
+        }
         TotalStatistics total = getTotalStatistics(totalPages, totalLemmas);
         StatisticsData data = getStatisticsData(detailed, total);
 
         return getResponse(data);
-	}
+
+    }
 
     private static StatisticsResponse getResponse(StatisticsData data) {
         return StatisticsResponse.builder()
@@ -82,15 +87,15 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .pages(totalPages).build();
     }
 
-    private @NotNull DetailedStatisticsItem getDetailedStatisticsItem(@NotNull Site site, int pages, int lemmas, @NotNull SiteEntity siteEntity) {
+    private  DetailedStatisticsItem getDetailedStatisticsItem( Site site, int pages, int lemmas,  SiteEntity siteEntity) {
 
-		return DetailedStatisticsItem.builder()
-				.name(site.getName())
-				.url(site.getUrl())
-				.pages(pages)
-				.lemmas(lemmas)
-				.status(siteEntity.getStatus().toString())
-				.error(siteEntity.getLastError())
-				.statusTime(Date.from(siteEntity.getStatusTime().atZone(ZoneId.systemDefault()).toInstant())).build();
-	}
+        return DetailedStatisticsItem.builder()
+                .name(site.getName())
+                .url(site.getUrl())
+                .pages(pages)
+                .lemmas(lemmas)
+                .status(siteEntity.getStatus().toString())
+                .error(siteEntity.getLastError())
+                .statusTime(Date.from(siteEntity.getStatusTime().atZone(ZoneId.systemDefault()).toInstant())).build();
+    }
 }

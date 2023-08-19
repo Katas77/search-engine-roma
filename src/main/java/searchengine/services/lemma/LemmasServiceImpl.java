@@ -13,7 +13,6 @@ import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
-import searchengine.services.lemma.LemmasAndIndexCollectingService;
 import searchengine.tools.LemmaFinder;
 
 import java.util.*;
@@ -25,7 +24,7 @@ import static java.lang.Thread.sleep;
 @Setter
 @Service
 @RequiredArgsConstructor
-public class LemmasAndIndexCollectingServiceImpl implements LemmasAndIndexCollectingService {
+public class LemmasServiceImpl implements LemmaService {
 
 	private Boolean enabled = true;
 	private Integer countPages = 0;

@@ -2,8 +2,7 @@ package searchengine.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import searchengine.model.IndexingStatus;
+import searchengine.model.Status;
 import searchengine.model.SiteEntity;
 
 
@@ -15,7 +14,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, Long> {
 	SiteEntity findByUrl(String url);
 
 
-	boolean existsByStatus(IndexingStatus status);
+	boolean existsByStatus(Status status);
 
 }
 

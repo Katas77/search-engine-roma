@@ -2,7 +2,6 @@ package searchengine.services.indexing;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.UncheckedIOException;
@@ -32,9 +31,9 @@ import static searchengine.tools.StringPool.*;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class ScrapingAction extends RecursiveAction {
+public class RecursiveMake extends RecursiveAction {
 
-	public static volatile Boolean enabled = true;
+	public static volatile Boolean offOn = true;
 	public String homeUrl;
 	public String siteUrl;
 	private String currentUrl;
@@ -48,11 +47,11 @@ public class ScrapingAction extends RecursiveAction {
 	private Environment environment;
 	private final PageRepository pageRepository;
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	private static final AcceptableContentTypes ACCEPTABLE_CONTENT_TYPES = new AcceptableContentTypes();
+	private static final AcceptableContentTypes TYPES = new AcceptableContentTypes();
 
-	public ScrapingAction(String currentUrl,
-						  SiteEntity siteEntity,
-						  BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
+	public RecursiveMake(String currentUrl,
+						 SiteEntity siteEntity,
+						 BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
 		this.siteEntity = siteEntity;
 		this.outcomeQueue = outcomeQueue;
 		this.currentUrl = currentUrl;
@@ -64,9 +63,27 @@ public class ScrapingAction extends RecursiveAction {
 
 	@Override
 	protected void compute() {
-		if (!enabled)
+		if (!offOn)
 			return;
-		response = getResponseFromUrl(currentUrl);
+		lock.readLock().lock();
+		if (!visitedLinks.containsKey(currentUrl)) internVisitedLinks(currentUrl);
+		lock.readLock().unlock();
+		try {
+			response = Jsoup.connect(currentUrl).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+					.referrer("http://www.google.com").execute();
+
+			document = response.parse();
+			parentPath = "/" + currentUrl.replace(homeUrl, "");
+			cleanHtmlContent();
+			pageEntity = new PageEntity(siteEntity, response.statusCode(), document.html(), parentPath);
+
+		} catch (IOException | UncheckedIOException exception) {
+			urlNotAvailableActions(currentUrl, exception);
+
+		}
+		if (Objects.equals(environment.getProperty("user-settings.logging-enable"), "true")) {
+			log.info("Response from " + currentUrl + " got successfully");
+		}
 
 		saveExtractedPage();
 		final Elements elements = document.select("a[href]");
@@ -74,9 +91,7 @@ public class ScrapingAction extends RecursiveAction {
 			childLinksOfTask = getChildLinks(currentUrl, elements);
 		}
 		forkAndJoinTasks();
-
 	}
-
 	public Set<String> getChildLinks(String url, Elements elements) {
 		Set<String> newChildLinks = new HashSet<>();
 
@@ -113,33 +128,6 @@ public class ScrapingAction extends RecursiveAction {
 						| !extractedHref.matches(URL_IS_FILE_LINK));
 	}
 
-	private Connection.@Nullable Response getResponseFromUrl(String url) {
-
-		lock.readLock().lock();
-		if (!visitedLinks.containsKey(url)) internVisitedLinks(url);
-		else
-			return null;
-		lock.readLock().unlock();
-
-		try {
-			response = Jsoup.connect(url).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
-					.referrer("http://www.google.com").execute();
-			if (ACCEPTABLE_CONTENT_TYPES.contains(response.contentType())) {
-				document = response.parse();
-				parentPath = "/" + url.replace(homeUrl, "");
-				cleanHtmlContent();
-				pageEntity = new PageEntity(siteEntity, response.statusCode(), document.html(), parentPath);
-			} else
-				return null;
-		} catch (IOException | UncheckedIOException exception) {
-			urlNotAvailableActions(url, exception);
-			return null;
-		}
-		if (Objects.equals(environment.getProperty("user-settings.logging-enable"), "true")) {
-			log.info("Response from " + url + " got successfully");
-		}
-		return response;
-	}
 
 	private void urlNotAvailableActions(String url, Exception exception) {
 		siteEntity.setLastError(exception.getMessage());
@@ -173,21 +161,21 @@ public class ScrapingAction extends RecursiveAction {
 	}
 
 	private void forkAndJoinTasks() {
-		if (!enabled)
+		if (!offOn)
 			return;
 
-		List<ScrapingAction> subTasks = new LinkedList<>();
+		List<RecursiveMake> subTasks = new LinkedList<>();
 
 		for (String childLink : childLinksOfTask) {
 			if (childIsValidToFork(childLink)
 					&& !pages404.containsKey(childLink)
 					&& !visitedLinks.containsKey(childLink)) {
-				ScrapingAction action = new ScrapingAction(childLink, siteEntity, outcomeQueue, environment, pageRepository, homeUrl, siteUrl);
+				RecursiveMake action = new RecursiveMake(childLink, siteEntity, outcomeQueue, environment, pageRepository, homeUrl, siteUrl);
 				action.fork();
 				subTasks.add(action);
 			}
 		}
-		for (ScrapingAction task : subTasks) task.join();
+		for (RecursiveMake task : subTasks) task.join();
 	}
 
 	private boolean childIsValidToFork(String subLink) {
@@ -208,7 +196,7 @@ public class ScrapingAction extends RecursiveAction {
 	private void putPageEntityToOutcomeQueue() {
 		try {
 			while (true) {
-				if (outcomeQueue.remainingCapacity() < 5 && enabled)
+				if (outcomeQueue.remainingCapacity() < 5 && offOn)
 					sleep(5_000);
 				else
 					break;

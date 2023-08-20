@@ -1,6 +1,5 @@
 package searchengine.services.statistic;
 
-import com.sun.istack.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,14 +14,13 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.services.indexing.IndexingActions;
+import searchengine.services.indexing.IndexingOperations;
 
 import javax.persistence.NonUniqueResultException;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Service
@@ -31,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final SitesList sites;
-    private final IndexingActions indexingActions;
+    private final IndexingOperations indexingActions;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;

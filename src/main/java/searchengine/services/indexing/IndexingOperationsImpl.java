@@ -34,7 +34,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Getter
 @Component
 @RequiredArgsConstructor
-public class IndexingActionsImpl implements IndexingActions {
+public class IndexingOperationsImpl implements IndexingOperations {
 
     private final String[] errors = {
             "Ошибка индексации: главная страница сайта не доступна",

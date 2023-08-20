@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 public class IndexingServiceImpl implements IndexingService {
 
     private final SchemaMake schemaActions;
-    private final IndexingActions indexingActions;
+    private final IndexingOperations indexingActions;
     private Thread thread;
     public SiteRepository siteRepository;
     ExecutorService executorService;

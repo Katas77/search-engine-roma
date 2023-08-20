@@ -2,7 +2,7 @@ package searchengine.services.indexing;
 import searchengine.model.SiteEntity;
 import java.util.Set;
 
-public interface IndexingActions {
+public interface IndexingOperations {
 
 	void startTreadsIndexing(Set<SiteEntity> siteEntities);
 

@@ -21,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 
 public class IndexingServiceImpl implements IndexingService {
 
-    private final SchemaMake schemaActions;
+    private final SchemaMake schemaMake;
     private final IndexingOperations indexingActions;
     private Thread thread;
     public SiteRepository siteRepository;
@@ -30,7 +30,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.warn("метод startIndexing запущен");
-        Set<SiteEntity> siteEntities = schemaActions.setSites();
+        Set<SiteEntity> siteEntities = schemaMake.setSites();
         if (siteEntities.size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
@@ -53,7 +53,7 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(new BadRequest(false, "Индексацию запустить не удалось. Пустой поисковый запрос"),
                     HttpStatus.BAD_REQUEST);
 
-        SiteEntity siteEntity = schemaActions.partialInit(url);
+        SiteEntity siteEntity = schemaMake.partialInit(url);
         if (siteEntity == null)
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);

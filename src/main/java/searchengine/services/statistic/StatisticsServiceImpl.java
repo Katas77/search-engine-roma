@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 
+import searchengine.config.SitesList;
 import searchengine.dto.search.statistics.DetailedStatisticsItem;
 import searchengine.dto.search.statistics.StatisticsData;
 import searchengine.dto.search.statistics.StatisticsResponse;
@@ -29,12 +30,13 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
+    private final SitesList sitesList;
 
 
     private TotalStatistics getTotal() {
         long sites = siteRepository.count();
         if (siteRepository.count()==0)
-        {sites=3;}
+        {sites=sitesList.getSites().size();}
         long pages = pageRepository.count();
         long lemmas = lemmaRepository.count();
         return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);

@@ -42,17 +42,13 @@ public class SchemaMake {
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
 		Set<SiteEntity> newSites = new HashSet<>();
-
 			sitesList.getSites().forEach(site -> newSites.add(getSiteEntity(site)));
-
 		newSites.forEach(entity -> {
 			if (!siteRepository.existsByUrl(entity.getUrl())) {
 				log.warn("SiteEntity name " + entity.getName() + " with URL " + entity.getUrl() + " saving in table");
 				siteRepository.save(entity);
 			}
 		});
-
-
 		return newSites;
 	}
 
@@ -60,7 +56,7 @@ public class SchemaMake {
 		SiteEntity result;
 		SiteEntity existingSite = siteRepository.findByUrl(newSite.getUrl());
 		if (existingSite != null) {
-			System.out.println("rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
+
 
 			clearRelatedTables(existingSite);
 			result = existingSite;

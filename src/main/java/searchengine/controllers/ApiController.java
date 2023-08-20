@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import searchengine.dto.search.statistics.StatisticsResponse;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingService;
@@ -12,12 +13,11 @@ import searchengine.dto.search.SearchResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.services.search.SearchService;
-import searchengine.dto.statistics.StatisticsResponse;
+
 import searchengine.services.statistic.StatisticsService;
 import searchengine.request.BadRequest;
 
-@Slf4j
-@Setter
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -35,7 +35,6 @@ public class ApiController {
 
 	@GetMapping("/statistics")
 	public ResponseEntity<StatisticsResponse> statistics() {
-
 		return ResponseEntity.ok(statisticsService.getStatistics());
 	}
 

@@ -1,10 +1,10 @@
-package searchengine.dto.statistics;
+package searchengine.dto.search.statistics;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class TotalStatistics {
     private int sites;
     private int pages;

@@ -1,5 +1,6 @@
 package searchengine.model;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,8 +8,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Setter
-@Getter
+@Data
 @Entity(name = "SiteEntity")
 @Table(name = "site")
 

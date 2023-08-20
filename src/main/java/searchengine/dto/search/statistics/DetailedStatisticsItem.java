@@ -1,18 +1,18 @@
-package searchengine.dto.statistics;
+package searchengine.dto.search.statistics;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class DetailedStatisticsItem {
     private String url;
     private String name;
     private String status;
-    private Date statusTime;
+    private LocalDateTime statusTime;
     private String error;
     private int pages;
     private int lemmas;
 }
-

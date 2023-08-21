@@ -44,8 +44,8 @@ public class IndexingOperationsImpl implements IndexingOperations {
     private Boolean offOn = true;
     private SiteEntity siteEntity;
     private BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting = new LinkedBlockingQueue<>(1_000);
-    private RecursiveMake action;
-    private boolean indexingActionsStarted = false;
+
+    private boolean indexingStarted;
     private final SitesList sitesList;
     private final Environment environment;
     private final PageRepository pageRepository;
@@ -58,7 +58,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
     public void startTreadsIndexing(Set<SiteEntity> siteEntities) {
         log.warn("Full indexing will be started now");
         ForkJoinPool pool = new ForkJoinPool();
-        setIndexingActionsStarted(true);
+        setIndexingStarted(true);
         for (SiteEntity siteEntity : siteEntities) {
             if (!offOn) {
                 stopPressedActions(pool);
@@ -66,30 +66,32 @@ public class IndexingOperationsImpl implements IndexingOperations {
             }
             CountDownLatch latch = new CountDownLatch(2);
             writeLogBeforeIndexing(siteEntity);
-
             Thread scrapingThread = new Thread(() -> crawlThreadBody(pool, siteEntity, latch), "crawl-thread");
             Thread lemmasCollectorThread = new Thread(() -> lemmasThreadBody(siteEntity, latch), "lemmas-thread");
-
             scrapingThread.start();
             lemmasCollectorThread.start();
-
-            awaitLatch(latch);
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                log.error("Can't await latch");
+            }
             doActionsAfterIndexing(siteEntity);
-
         }
         pool.shutdownNow();
-
-        setIndexingActionsStarted(false);
+        this.setIndexingStarted(false);
     }
 
     private void lemmasThreadBody(SiteEntity siteEntity, CountDownLatch latch) {
-        lemmasCollectingActions(siteEntity);
+        lemmasAndIndexCollectingService.setIncomeQueue(queueOfPagesForLemmasCollecting);
+        lemmasAndIndexCollectingService.setScrapingIsDone(false);
+        lemmasAndIndexCollectingService.setSiteEntity(siteEntity);
+        lemmasAndIndexCollectingService.startCollecting();
         latch.countDown();
         log.warn("lemmas-finding-thread finished, latch =  " + latch.getCount());
     }
 
     private void crawlThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
-        action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
+       RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 
         latch.countDown();
@@ -107,14 +109,6 @@ public class IndexingOperationsImpl implements IndexingOperations {
         startTreadsIndexing(oneEntitySet);
     }
 
-    private void lemmasCollectingActions(SiteEntity siteEntity) {
-        lemmasAndIndexCollectingService.setIncomeQueue(queueOfPagesForLemmasCollecting);
-        lemmasAndIndexCollectingService.setScrapingIsDone(false);
-        lemmasAndIndexCollectingService.setSiteEntity(siteEntity);
-        lemmasAndIndexCollectingService.startCollecting();
-    }
-
-
 
     private void stopPressedActions(ForkJoinPool pool) {
 
@@ -126,14 +120,13 @@ public class IndexingOperationsImpl implements IndexingOperations {
         } finally {
             pool.shutdownNow();
             setOffOn(true);
-            setIndexingActionsStarted(false);
+            this.setIndexingStarted(false);
 
         }
     }
 
-    @Override
-    public boolean isIndexingActionsStarted() {
-        return indexingActionsStarted;
+    public boolean isIndexingStarted() {
+        return indexingStarted;
     }
 
     @Override
@@ -143,7 +136,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
         RecursiveMake.offOn = value;
     }
 
-    private void doActionsAfterIndexing(@NotNull SiteEntity siteEntity) {
+    private void doActionsAfterIndexing( SiteEntity siteEntity) {
         siteEntity.setStatus(Status.INDEXED);
         siteEntity.setLastError("");
         siteEntity.setStatusTime(LocalDateTime.now());
@@ -187,13 +180,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
     }
 
 
-    private void awaitLatch(@NotNull CountDownLatch latch) {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("Can't await latch");
-        }
-    }
+
 
     private void writeLogBeforeIndexing( SiteEntity siteEntity) {
         log.info(siteEntity.getName() + " with URL " + siteEntity.getUrl() + " started indexing");

@@ -38,7 +38,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
         log.warn("Mapping /indexPage executed");
-        if (indexingOperations.isIndexingActionsStarted())
+        if (indexingOperations.isIndexingStarted())
             return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
                     HttpStatus.BAD_REQUEST);
         if (url == null || url.equals(""))
@@ -56,11 +56,11 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingStop() {
         log.warn("Mapping /stopIndexing executed");
-        if (!indexingOperations.isIndexingActionsStarted())
+        if (!indexingOperations.isIndexingStarted())
             return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
                     HttpStatus.BAD_REQUEST);
        indexingOperations.setOffOn(false);
-       indexingOperations.setIndexingActionsStarted(false);
+       indexingOperations.setIndexingStarted(false);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
 

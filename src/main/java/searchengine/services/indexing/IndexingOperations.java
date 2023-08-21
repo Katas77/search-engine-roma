@@ -8,9 +8,9 @@ public interface IndexingOperations {
 
 	void startPartialIndexing(SiteEntity siteEntity);
 
-	void setIndexingActionsStarted(boolean value);
+	void setIndexingStarted(boolean value);
 
-	boolean isIndexingActionsStarted();
+	boolean isIndexingStarted();
 
 	void setOffOn(boolean value);
 }

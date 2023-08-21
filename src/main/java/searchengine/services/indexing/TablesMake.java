@@ -25,7 +25,7 @@ import java.util.*;
 @Setter
 @RequiredArgsConstructor
 @Component
-public class SchemaMake {
+public class TablesMake {
 
 	private final SitesList sitesList;
 	private final Environment environment;
@@ -41,48 +41,22 @@ public class SchemaMake {
 		lemmaRepository.deleteAllInBatch();
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
-		Set<SiteEntity> newSites = new HashSet<>();
-			sitesList.getSites().forEach(site -> newSites.add(getSiteEntity(site)));
-		newSites.forEach(entity -> {
-			if (!siteRepository.existsByUrl(entity.getUrl())) {
-				log.warn("SiteEntity name " + entity.getName() + " with URL " + entity.getUrl() + " saving in table");
-				siteRepository.save(entity);
-			}
+		Set<SiteEntity> setSiteEntity = new HashSet<>();
+		sitesList.getSites().forEach(site -> setSiteEntity.add(newSiteEntity(site)));
+		setSiteEntity.forEach(entity -> {siteRepository.save(entity);
 		});
-		return newSites;
+		return setSiteEntity;
 	}
 
-	private  SiteEntity getSiteEntity(Site newSite) {
-		SiteEntity result;
-		SiteEntity existingSite = siteRepository.findByUrl(newSite.getUrl());
-		if (existingSite != null) {
-
-
-			clearRelatedTables(existingSite);
-			result = existingSite;
-		} else {
-			log.warn("New site " + newSite.getName() + " " + newSite.getUrl() + " added to indexing set");
-			result = initSiteRow(newSite);
-		}
-		return result;
+	private SiteEntity newSiteEntity(Site site) {
+		SiteEntity siteEntity = new SiteEntity();
+		siteEntity.setStatus(Status.INDEXING);
+		siteEntity.setStatusTime(LocalDateTime.now());
+		siteEntity.setLastError("");
+		siteEntity.setUrl(site.getUrl());
+		siteEntity.setName(site.getName());
+		return siteEntity;
 	}
-
-
-
-	private void clearRelatedTables( SiteEntity site) {
-		log.info("Site " + site.getName() + " " + site.getUrl() + " found in table");
-		log.warn("Updating " + site.getName() + " " + site.getUrl() + " status and time");
-		site.setStatus(Status.INDEXING);
-		site.setLastError("");
-		site.setStatusTime(LocalDateTime.now());
-
-		log.warn("Deletion pages and lemmas with indexes from " + site.getName() + " " + site.getUrl());
-		pageRepository.deleteAllBySiteEntity(site);
-		lemmaRepository.deleteAllInBatchBySiteEntity(site);
-
-		log.info("Site " + site.getName() + " " + site.getUrl() + " will be indexing again");
-	}
-
 
 
 	public SiteEntity partialInit(String url) {
@@ -109,16 +83,17 @@ public class SchemaMake {
 		return siteEntity;
 	}
 
-	private String getHomeSiteUrl(String url){
+	private String getHomeSiteUrl(String url) {
 		String result = null;
-		for (Site s: sitesList.getSites()) {
-			if (s.getUrl().startsWith(UrlFormatter.getShortUrl(url))){
+		for (Site s : sitesList.getSites()) {
+			if (s.getUrl().startsWith(UrlFormatter.getShortUrl(url))) {
 				result = s.getUrl();
 				break;
 			}
 		}
 		return result;
 	}
+
 	@Nullable
 	private SiteEntity checkExistingSite(Site site) {
 		SiteEntity siteEntity;
@@ -154,19 +129,7 @@ public class SchemaMake {
 		return null;
 	}
 
-
-	private  SiteEntity initSiteRow( Site site) {
-		SiteEntity siteEntity = new SiteEntity();
-		siteEntity.setStatus(Status.INDEXING);
-		siteEntity.setStatusTime(LocalDateTime.now());
-		siteEntity.setLastError("");
-		siteEntity.setUrl(site.getUrl());
-		siteEntity.setName(site.getName());
-		return siteEntity;
-	}
-
-
-	private void decreaseLemmasFreqByPage( List<PageEntity> pageEntities) {
+	private void decreaseLemmasFreqByPage(List<PageEntity> pageEntities) {
 		log.warn("Start decreasing freq of lemmas of deleted pages");
 
 		List<IndexEntity> indexForLemmaDecreaseFreq = indexRepository.findAllByPageEntityIn(pageEntities);

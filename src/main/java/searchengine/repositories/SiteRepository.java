@@ -16,6 +16,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, Long> {
 
 	boolean existsByStatus(Status status);
 
+
 }
 
 

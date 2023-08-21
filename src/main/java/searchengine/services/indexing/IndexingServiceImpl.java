@@ -9,9 +9,7 @@ import searchengine.model.*;
 import searchengine.repositories.SiteRepository;
 import searchengine.request.BadRequest;
 import searchengine.request.OkResponse;
-
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Setter
@@ -21,11 +19,10 @@ import java.util.concurrent.ExecutorService;
 
 public class IndexingServiceImpl implements IndexingService {
 
-    private final SchemaMake schemaMake;
-    private final IndexingOperations indexingActions;
-    private Thread thread;
-    public SiteRepository siteRepository;
-    ExecutorService executorService;
+    private final TablesMake schemaMake;
+    private final IndexingOperations indexingOperations;
+    public final SiteRepository siteRepository;
+
 
     @Override
     public ResponseEntity<Object> indexingStart() {
@@ -34,51 +31,38 @@ public class IndexingServiceImpl implements IndexingService {
         if (siteEntities.size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
-
-        thread = new Thread(() -> indexingActions.startTreadsIndexing(siteEntities), "indexing-thread");
+        Thread thread = new Thread(() -> indexingOperations.startTreadsIndexing(siteEntities));
         thread.start();
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
-
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
-
         log.warn("Mapping /indexPage executed");
-
-        if (indexingActions.isIndexingActionsStarted())
+        if (indexingOperations.isIndexingActionsStarted())
             return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
                     HttpStatus.BAD_REQUEST);
-
         if (url == null || url.equals(""))
             return new ResponseEntity<>(new BadRequest(false, "Индексацию запустить не удалось. Пустой поисковый запрос"),
                     HttpStatus.BAD_REQUEST);
-
         SiteEntity siteEntity = schemaMake.partialInit(url);
         if (siteEntity == null)
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
-        thread = new Thread(() -> indexingActions.startPartialIndexing(siteEntity), "indexingActions-thread");
+        Thread thread = new Thread(() -> indexingOperations.startPartialIndexing(siteEntity), "indexingActions-thread");
         thread.start();
-
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
-
     }
-
 
     @Override
     public ResponseEntity<Object> indexingStop() {
         log.warn("Mapping /stopIndexing executed");
-
-        if (!indexingActions.isIndexingActionsStarted())
+        if (!indexingOperations.isIndexingActionsStarted())
             return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
                     HttpStatus.BAD_REQUEST);
-
-        indexingActions.setOffOn(false);
-        indexingActions.setIndexingActionsStarted(false);
-
+       indexingOperations.setOffOn(false);
+       indexingOperations.setIndexingActionsStarted(false);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
-
 
 
 }

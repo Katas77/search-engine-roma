@@ -104,8 +104,10 @@ public class IndexingOperationsImpl implements IndexingOperations {
     @Override
     public void startPartialIndexing(SiteEntity siteEntity) {
         log.warn("Partial indexing will be started now");
+
         Set<SiteEntity> oneEntitySet = new HashSet<>();
         oneEntitySet.add(siteEntity);
+
         startTreadsIndexing(oneEntitySet);
     }
 

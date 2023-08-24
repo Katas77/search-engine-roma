@@ -19,7 +19,7 @@ import java.util.*;
 
 public class IndexingServiceImpl implements IndexingService {
 
-    private final TablesMake schemaMake;
+    private final TablesMake tableMake;
     private final IndexingOperations indexingOperations;
     public final SiteRepository siteRepository;
 
@@ -27,7 +27,7 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.warn("метод startIndexing запущен");
-        Set<SiteEntity> siteEntities = schemaMake.setSites();
+        Set<SiteEntity> siteEntities = tableMake.setSites();
         if (siteEntities.size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
@@ -44,10 +44,12 @@ public class IndexingServiceImpl implements IndexingService {
         if (url == null || url.equals(""))
             return new ResponseEntity<>(new BadRequest(false, "Индексацию запустить не удалось. Пустой поисковый запрос"),
                     HttpStatus.BAD_REQUEST);
-        SiteEntity siteEntity = schemaMake.partialInit(url);
+        SiteEntity siteEntity = tableMake.oneSiteEntity(url);
+
         if (siteEntity == null)
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
+
         Thread thread = new Thread(() -> indexingOperations.startPartialIndexing(siteEntity), "indexingActions-thread");
         thread.start();
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);

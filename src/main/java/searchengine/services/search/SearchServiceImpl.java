@@ -6,8 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import searchengine.dto.search.statistics.SearchData;
-import searchengine.dto.search.statistics.SearchResponse;
+import searchengine.dto.searh.SearchData;
+import searchengine.dto.searh.SearchResponse;
 import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;

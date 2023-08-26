@@ -1,4 +1,4 @@
-package searchengine.dto.search.statistics;
+package searchengine.dto.searh;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

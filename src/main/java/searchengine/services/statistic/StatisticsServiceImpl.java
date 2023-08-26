@@ -1,42 +1,53 @@
 package searchengine.services.statistic;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Service;
-
 import searchengine.config.SitesList;
-import searchengine.dto.search.statistics.DetailedStatisticsItem;
-import searchengine.dto.search.statistics.StatisticsData;
-import searchengine.dto.search.statistics.StatisticsResponse;
-import searchengine.dto.search.statistics.TotalStatistics;
+import searchengine.dto.statistics.DetailedStatisticsItem;
+import searchengine.dto.statistics.StatisticsData;
+import searchengine.dto.statistics.StatisticsResponse;
+import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
+
 import java.time.LocalDateTime;
-
 import java.util.ArrayList;
-
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
-    private final SitesList sitesList;
+    private final SitesList sites;
 
 
+    @Override
+    public StatisticsResponse getStatistics() {
+        String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
+        String[] errors = {
+                "Ошибка индексации: главная страница сайта не доступна",
+                "Ошибка индексации: сайт не доступен",
+                ""
+        };
+        StatisticsResponse response = new StatisticsResponse();
+        StatisticsData data = new StatisticsData();
+        data.setTotal(getTotal());
+        data.setDetailed(getStatisticsData());
+        response.setStatistics(data);
+        response.setResult(true);
+        return response;
+
+    }
     private TotalStatistics getTotal() {
         long sites = siteRepository.count();
         if (siteRepository.count()==0)
-        {sites=sitesList.getSites().size();}
+        {sites= this.sites.getSites().size();}
         long pages = pageRepository.count();
         long lemmas = lemmaRepository.count();
         return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);
@@ -63,12 +74,4 @@ public class StatisticsServiceImpl implements StatisticsService {
         return result;
     }
 
-
-    @Override
-    public StatisticsResponse getStatistics() {
-        TotalStatistics total = getTotal();
-        List<DetailedStatisticsItem> list = getStatisticsData();
-        StatisticsData statistics = new StatisticsData(total, list);
-        return new StatisticsResponse(true, statistics);
-    }
 }

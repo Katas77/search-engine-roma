@@ -49,6 +49,7 @@ public class RecursiveMake extends RecursiveAction {
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	private static final AcceptableContentTypes TYPES = new AcceptableContentTypes();
 
+
 	public RecursiveMake(String currentUrl,
 						 SiteEntity siteEntity,
 						 BlockingQueue<PageEntity> outcomeQueue, Environment environment, PageRepository pageRepository, String homeUrl, String siteUrl) {
@@ -206,4 +207,5 @@ public class RecursiveMake extends RecursiveAction {
 			log.error("Can't put pageEntity to outcomeQueue");
 		}
 	}
+
 }

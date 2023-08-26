@@ -4,16 +4,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import searchengine.config.SitesList;
 import searchengine.dto.search.statistics.StatisticsResponse;
 import searchengine.model.Status;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingService;
-import searchengine.dto.search.SearchResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.services.search.SearchService;
 
+import searchengine.services.search.SearchService;
 import searchengine.services.statistic.StatisticsService;
 import searchengine.request.BadRequest;
 
@@ -59,13 +57,21 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<SearchResponse> search(
-            @RequestParam final String query,
-            @RequestParam(required = false) final String site,
-            @RequestParam final Integer offset,
-            @RequestParam final Integer limit) {
+    public ResponseEntity<Object> search(@RequestParam( required = false, defaultValue = "купить")
+                                         String query,
 
-        return ResponseEntity.ok(searchService.getSearchResults(query, site, offset, limit));
+                                         @RequestParam( required = false, defaultValue = "")
+                                         String site,
+
+                                         @RequestParam( required = false)
+                                         int offset,
+
+                                         @RequestParam( required = false)
+                                         int limit)
+
+    {
+
+        return searchService.search(query, site, offset, limit);
     }
 
     private boolean isIndexing() {

@@ -46,10 +46,10 @@ public class ApiController {
         return indexingService.indexingStart();
     }
 
-    @PostMapping("/indexPage")
+   @PostMapping("/indexPage")
     public ResponseEntity<Object> indexPage(@RequestParam final String url) {
-        return indexingService.indexingPageStart(url);
-    }
+        return indexingService.indexingPageStart(url);}
+
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
@@ -57,7 +57,7 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> search(@RequestParam( defaultValue = "купить") String query,
+    public ResponseEntity<Object> search(@RequestParam(defaultValue = "купить") String query,
                                          @RequestParam(required = false, defaultValue = "") String site,
                                          @RequestParam(required = false) int offset,
                                          @RequestParam(required = false) int limit) {

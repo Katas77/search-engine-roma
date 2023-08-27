@@ -61,7 +61,7 @@ public class IndexingServiceImpl implements IndexingService {
         if (!indexingOperations.isIndexingStarted())
             return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
                     HttpStatus.BAD_REQUEST);
-       indexingOperations.setOffOn(false);
+       indexingOperations.setIsActive(false);
        indexingOperations.setIndexingStarted(false);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }

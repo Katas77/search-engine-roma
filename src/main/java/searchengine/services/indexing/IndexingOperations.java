@@ -12,6 +12,6 @@ public interface IndexingOperations {
 
 	boolean isIndexingStarted();
 
-	void setOffOn(boolean value);
+	void setIsActive(boolean value);
 }
 

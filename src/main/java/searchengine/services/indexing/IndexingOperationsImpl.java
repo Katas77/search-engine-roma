@@ -41,7 +41,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
             "Ошибка индексации: сайт не доступен",
             ""};
 
-    private Boolean offOn = true;
+    private Boolean isActive = true;
     private SiteEntity siteEntity;
     private BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting = new LinkedBlockingQueue<>(1_000);
 
@@ -60,15 +60,15 @@ public class IndexingOperationsImpl implements IndexingOperations {
         ForkJoinPool pool = new ForkJoinPool();
         setIndexingStarted(true);
         for (SiteEntity siteEntity : siteEntities) {
-            if (!offOn) {
+            if (!isActive) {
                 stopPressedActions(pool);
                 break;
             }
             CountDownLatch latch = new CountDownLatch(2);
             writeLogBeforeIndexing(siteEntity);
-            Thread scrapingThread = new Thread(() -> crawlThreadBody(pool, siteEntity, latch), "crawl-thread");
+            Thread recursivThread = new Thread(() -> RecursiveThreadBody(pool, siteEntity, latch), "Recursive-thread");
             Thread lemmasCollectorThread = new Thread(() -> lemmasThreadBody(siteEntity, latch), "lemmas-thread");
-            scrapingThread.start();
+            recursivThread.start();
             lemmasCollectorThread.start();
             try {
                 latch.await();
@@ -90,7 +90,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
         log.warn("lemmas-finding-thread finished, latch =  " + latch.getCount());
     }
 
-    private void crawlThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
+    private void RecursiveThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
        RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
 
@@ -121,7 +121,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
             System.out.println(e.getMessage());
         } finally {
             pool.shutdownNow();
-            setOffOn(true);
+            this.setIsActive(true);
             this.setIndexingStarted(false);
 
         }
@@ -131,9 +131,8 @@ public class IndexingOperationsImpl implements IndexingOperations {
         return indexingStarted;
     }
 
-    @Override
-    public void setOffOn(boolean value) {
-        offOn = value;
+    public void setIsActive(boolean value) {
+        isActive = value;
         lemmasAndIndexCollectingService.setEnabled(value);
         RecursiveMake.offOn = value;
     }
@@ -153,7 +152,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
                 siteEntity.setLastError(errors[1]);
             }
         }
-        if (offOn) {
+        if (isActive) {
             log.warn("Status of site " + siteEntity.getName()
                     + " set to " + siteEntity.getStatus().toString()
                     + ", error set to " + siteEntity.getLastError());

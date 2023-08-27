@@ -9,7 +9,7 @@ public interface LemmaService {
 
 	void setIncomeQueue(BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting);
 	void setSiteEntity(SiteEntity siteEntity);
-//	void setSavingPagesIsDone(boolean b);
+
 	void startCollecting();
 	void setEnabled(boolean value);
 	LemmaEntity createLemmaEntity(String lemma);

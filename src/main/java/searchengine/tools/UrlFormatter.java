@@ -1,10 +1,10 @@
 package searchengine.tools;
 
 
-import com.sun.istack.NotNull;
+
 
 public class UrlFormatter {
-	public static int findNthOccurrence(@NotNull String str, char ch, int n) {
+	public static int findNthOccurrence( String str, char ch, int n) {
 		int index = str.indexOf(ch);
 		while (--n > 0 && index != -1) {
 			index = str.indexOf(ch, index + 1);
@@ -12,7 +12,8 @@ public class UrlFormatter {
 		return index;
 	}
 
-	public static @NotNull String getShortUrl(String url) {
+	public static String getShortUrl(String url) {
 		return url.substring(0, findNthOccurrence(url, '/', 3) + 1);
 	}
 }
+/*not null*/

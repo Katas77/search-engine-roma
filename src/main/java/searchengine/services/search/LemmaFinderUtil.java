@@ -25,20 +25,6 @@ public class LemmaFinderUtil {
     }
 
 
-    public HashMap<String, Integer> collectLemmas(String text) {
-        text = clearText(text);
-        HashMap<String, Integer> lemmaList = new HashMap<>();
-
-        String[] elements = text.toLowerCase(Locale.ROOT).split("\\s+");
-        for (String element : elements) {
-            List<String> wordsList = getLemma(element);
-            for (String word : wordsList) {
-                int count = lemmaList.getOrDefault(word, 0);
-                lemmaList.put(word, count + 1);
-            }
-        }
-        return lemmaList;
-    }
 
     public List<String> getLemma(String word) {
         List<String> lemmaList = new ArrayList<>();

@@ -9,19 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Setter
 @Component
 public class StringPool {
-	public static Map<String, String> visitedLinks;
+	public static Map<String, String> links;
 	public static Map<String, String> savedPaths = null;
 	public static Map<String, String> pages404;
 
 
 	public StringPool() {
 		savedPaths = new ConcurrentHashMap<>(3000);
-		visitedLinks = new ConcurrentHashMap<>(5000);
+		links = new ConcurrentHashMap<>(5000);
 		pages404 = new ConcurrentHashMap<>(100);
 	}
 
 	public static String internVisitedLinks(String s){
-		String exist = visitedLinks.putIfAbsent(s, s);
+		String exist = links.putIfAbsent(s, s);
 		return (exist == null) ? s : exist;
 	}
 
@@ -37,7 +37,7 @@ public class StringPool {
 
 	public static void clearAll(){
 		savedPaths.clear();
-		visitedLinks.clear();
+		links.clear();
 		pages404.clear();
 	}
 

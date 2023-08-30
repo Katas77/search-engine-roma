@@ -30,7 +30,7 @@ public class PageEntity {
 			referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
 	private SiteEntity siteEntity;
 
-	@Column(name = "path", columnDefinition = "VARCHAR(768) CHARACTER SET utf8")
+	@Column(name = "path", columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
 	private String path;
 
 	@Column(nullable = false)

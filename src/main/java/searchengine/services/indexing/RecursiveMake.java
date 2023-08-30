@@ -36,7 +36,7 @@ public class RecursiveMake extends RecursiveAction {
 	private String parentPath;
 	private SiteEntity siteEntity;
 	private PageEntity pageEntity;
-	private Set<String> childLinksOfTask;
+	private Set<String> childLinks;
 	private Connection.Response response = null;
 	private BlockingQueue<PageEntity> outcomeQueue;
 	private Environment environment;
@@ -44,13 +44,7 @@ public class RecursiveMake extends RecursiveAction {
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
 	public static final String urlValid = "^(ht|f)tp(s?)://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(/?)([a-zA-Z0-9\\-.,'=/\\\\+%_]*)?$";
-	public static final ArrayList<String> HTML_EXT = new ArrayList<>() {{
-		add("html");
-		add("dhtml");
-		add("shtml");
-		add("xhtml");
-	}};
-
+	public static final ArrayList<String> html = new ArrayList<>();
 
 	public RecursiveMake(String currentUrl,
 						 SiteEntity siteEntity,
@@ -69,7 +63,7 @@ public class RecursiveMake extends RecursiveAction {
 			return;
 		lock.readLock().lock();
 
-		if (!visitedLinks.containsKey(currentUrl))
+		if (!links.containsKey(currentUrl))
 			internVisitedLinks(currentUrl);
 		lock.readLock().unlock();
 		try {
@@ -89,7 +83,7 @@ public class RecursiveMake extends RecursiveAction {
 		saveExtractedPage();
 		final Elements elements = document.select("a[href]");
 		if (!elements.isEmpty()) {
-			childLinksOfTask = getChildLinks(currentUrl, elements);
+			childLinks = getChildLinks(currentUrl, elements);
 		}
 		forkAndJoinTasks();
 	}
@@ -98,7 +92,7 @@ public class RecursiveMake extends RecursiveAction {
 		for (Element element : elements) {
 			final String href = getHrefFromElement(element).toLowerCase();
 			lock.readLock().lock();
-			if (visitedLinks.containsKey(href))
+			if (links.containsKey(href))
 				continue;
 			else if (urlIsValidToProcess(url, newChildLinks, href)) {
 				addHrefToOutcomeValue(newChildLinks, href);
@@ -109,7 +103,7 @@ public class RecursiveMake extends RecursiveAction {
 	}
 
 	private void addHrefToOutcomeValue(Set<String> newChildLinks, String href) {
-		if (!visitedLinks.containsKey(href)
+		if (!links.containsKey(href)
 				&& !pages404.containsKey(href)
 				&& !savedPaths.containsKey(href)) {
 			newChildLinks.add(href);
@@ -123,7 +117,7 @@ public class RecursiveMake extends RecursiveAction {
 				&& !extractedHref.equals(sourceUrl)
 				&& !newChildLinks.contains(extractedHref)
 				&&
-				(HTML_EXT.stream().anyMatch(extractedHref.substring(extractedHref.length() - 4)::contains)
+				(html.stream().anyMatch(extractedHref.substring(extractedHref.length() - 4)::contains)
 						| !extractedHref.matches(urlLink));
 	}
 
@@ -164,10 +158,10 @@ public class RecursiveMake extends RecursiveAction {
 
 		List<RecursiveMake> subTasks = new LinkedList<>();
 
-		for (String childLink : childLinksOfTask) {
+		for (String childLink : childLinks) {
 			if (childIsValidToFork(childLink)
 					&& !pages404.containsKey(childLink)
-					&& !visitedLinks.containsKey(childLink)) {
+					&& !links.containsKey(childLink)) {
 				RecursiveMake action = new RecursiveMake(childLink, siteEntity, outcomeQueue, environment, pageRepository, homeUrl, siteUrl);
 				action.fork();
 				subTasks.add(action);
@@ -178,7 +172,11 @@ public class RecursiveMake extends RecursiveAction {
 
 	private boolean childIsValidToFork(String subLink) {
 		final String ext = subLink.substring(subLink.length() - 4);
-		return (HTML_EXT.stream().anyMatch(ext::contains) | !subLink.matches(urlLink));
+		html.add("html");
+		html.add("dhtml");
+		html.add("shtml");
+		html.add("xhtml");
+		return (html.stream().anyMatch(ext::contains) | !subLink.matches(urlLink));
 	}
 
 	public String getHrefFromElement(Element element) {

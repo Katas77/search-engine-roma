@@ -10,7 +10,6 @@ public interface IndexingOperations {
 
 	void setIndexingStarted(boolean value);
 
-	boolean isIndexingStarted();
 
 	void setIsActive(boolean value);
 }

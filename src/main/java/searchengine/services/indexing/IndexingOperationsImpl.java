@@ -119,9 +119,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
         }
     }
 
-    public boolean isIndexingStarted() {
-        return indexingStarted;
-    }
+
     public void setIsActive(boolean value) {
         isActive = value;
         lemmasAndIndexCollectingService.setEnabled(value);

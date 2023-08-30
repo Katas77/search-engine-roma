@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.model.*;
 import searchengine.repositories.SiteRepository;
-import searchengine.request.BadRequest;
-import searchengine.request.OkResponse;
+import searchengine.dto.forAll.BadRequest;
+import searchengine.dto.forAll.OkResponse;
 import java.util.*;
 
 @Slf4j
@@ -38,9 +38,6 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
         log.warn("Mapping /indexPage executed");
-        if (indexingOperations.isIndexingStarted())
-            return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
-                    HttpStatus.BAD_REQUEST);
         if (url == null || url.equals(""))
             return new ResponseEntity<>(new BadRequest(false, "Индексацию запустить не удалось. Пустой поисковый запрос"),
                     HttpStatus.BAD_REQUEST);
@@ -58,9 +55,6 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingStop() {
         log.warn("Mapping /stopIndexing executed");
-        if (!indexingOperations.isIndexingStarted())
-            return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
-                    HttpStatus.BAD_REQUEST);
        indexingOperations.setIsActive(false);
        indexingOperations.setIndexingStarted(false);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);

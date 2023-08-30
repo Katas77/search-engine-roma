@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
@@ -15,7 +14,6 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.tools.UrlFormatter;
 
 import java.time.LocalDateTime;
 import java.util.*;

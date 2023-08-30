@@ -7,14 +7,14 @@ import java.util.concurrent.BlockingQueue;
 
 public interface LemmaService {
 
-	void setIncomeQueue(BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting);
+	void setQueue(BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting);
 	void setSiteEntity(SiteEntity siteEntity);
 
 	void startCollecting();
 	void setEnabled(boolean value);
 	LemmaEntity createLemmaEntity(String lemma);
 	Boolean allowed();
-	void setScrapingIsDone(boolean b);
+	void setDone(boolean b);
 }
 
 

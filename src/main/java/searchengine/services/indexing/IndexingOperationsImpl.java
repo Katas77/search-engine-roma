@@ -17,8 +17,6 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.tools.StringPool;
-import searchengine.tools.UrlFormatter;
 import searchengine.services.lemma.LemmaService;
 
 import java.time.LocalDateTime;
@@ -44,7 +42,6 @@ public class IndexingOperationsImpl implements IndexingOperations {
     private Boolean isActive = true;
     private SiteEntity siteEntity;
     private BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting = new LinkedBlockingQueue<>(1_000);
-
     private boolean indexingStarted;
     private final SitesList sitesList;
     private final Environment environment;
@@ -82,8 +79,8 @@ public class IndexingOperationsImpl implements IndexingOperations {
     }
 
     private void lemmasThreadBody(SiteEntity siteEntity, CountDownLatch latch) {
-        lemmasAndIndexCollectingService.setIncomeQueue(queueOfPagesForLemmasCollecting);
-        lemmasAndIndexCollectingService.setScrapingIsDone(false);
+        lemmasAndIndexCollectingService.setQueue(queueOfPagesForLemmasCollecting);
+        lemmasAndIndexCollectingService.setDone(false);
         lemmasAndIndexCollectingService.setSiteEntity(siteEntity);
         lemmasAndIndexCollectingService.startCollecting();
         latch.countDown();
@@ -91,12 +88,10 @@ public class IndexingOperationsImpl implements IndexingOperations {
     }
 
     private void RecursiveThreadBody(@NotNull ForkJoinPool pool, SiteEntity siteEntity, @NotNull CountDownLatch latch) {
-       RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
+        RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, queueOfPagesForLemmasCollecting, environment, pageRepository, getHomeSiteUrl(siteEntity.getUrl()), siteEntity.getUrl());
         pool.invoke(action);
-
         latch.countDown();
-        lemmasAndIndexCollectingService.setScrapingIsDone(true);
-
+        lemmasAndIndexCollectingService.setDone(true);
         log.info(pageRepository.countBySiteEntity(siteEntity) + " pages saved in DB");
         log.warn("crawl-thread finished, latch =  " + latch.getCount());
     }
@@ -104,18 +99,15 @@ public class IndexingOperationsImpl implements IndexingOperations {
     @Override
     public void startPartialIndexing(SiteEntity siteEntity) {
         log.warn("Partial indexing will be started now");
-
         Set<SiteEntity> oneEntitySet = new HashSet<>();
         oneEntitySet.add(siteEntity);
-
         startTreadsIndexing(oneEntitySet);
     }
 
 
     private void stopPressedActions(ForkJoinPool pool) {
-
         try {
-            log.warn("STOP pressed");
+            log.warn("STOP");
             Thread.sleep(5_000);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
@@ -130,14 +122,12 @@ public class IndexingOperationsImpl implements IndexingOperations {
     public boolean isIndexingStarted() {
         return indexingStarted;
     }
-
     public void setIsActive(boolean value) {
         isActive = value;
         lemmasAndIndexCollectingService.setEnabled(value);
-        RecursiveMake.offOn = value;
+        RecursiveMake.isActive = value;
     }
-
-    private void doActionsAfterIndexing( SiteEntity siteEntity) {
+    private void doActionsAfterIndexing(SiteEntity siteEntity) {
         siteEntity.setStatus(Status.INDEXED);
         siteEntity.setLastError("");
         siteEntity.setStatusTime(LocalDateTime.now());
@@ -169,10 +159,10 @@ public class IndexingOperationsImpl implements IndexingOperations {
         StringPool.clearAll();
     }
 
-    private String getHomeSiteUrl(String url){
+    private String getHomeSiteUrl(String url) {
         String result = null;
-        for (Site s: sitesList.getSites()) {
-            if (s.getUrl().startsWith(UrlFormatter.getShortUrl(url))){
+        for (Site s : sitesList.getSites()) {
+            if (s.getUrl().startsWith(getShortUrl(url))) {
                 result = s.getUrl();
                 break;
             }
@@ -181,12 +171,24 @@ public class IndexingOperationsImpl implements IndexingOperations {
     }
 
 
-
-
-    private void writeLogBeforeIndexing( SiteEntity siteEntity) {
+    private void writeLogBeforeIndexing(SiteEntity siteEntity) {
         log.info(siteEntity.getName() + " with URL " + siteEntity.getUrl() + " started indexing");
         log.info(pageRepository.count() + " pages, "
                 + lemmaRepository.count() + " lemmas, "
                 + indexRepository.count() + " indexes in table");
     }
+
+    public static int findNthOccurrence(String str, char ch, int n) {
+        int index = str.indexOf(ch);
+        while (--n > 0 && index != -1) {
+            index = str.indexOf(ch, index + 1);
+        }
+        return index;
+    }
+
+    public static String getShortUrl(String url) {
+        return url.substring(0, findNthOccurrence(url, '/', 3) + 1);
+    }
+
+
 }

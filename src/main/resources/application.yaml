@@ -6,8 +6,8 @@ indexing-settings:
       name: Skillbox
     - url: https://www.playback.ru
       name: PlayBack.Ru
-    - url: https://upakmarket.com
-      name: upakmarket.com
+    - url: https://www.lenta.ru
+      name: Лента.ру
 
 server:
   port: 8080

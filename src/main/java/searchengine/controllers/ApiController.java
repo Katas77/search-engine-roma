@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import searchengine.services.search.SearchService;
-import searchengine.request.BadRequest;
+import searchengine.dto.forAll.BadRequest;
 import searchengine.services.statistic.StatisticsService;
 
 
@@ -25,7 +25,6 @@ public class ApiController {
     private final SearchService searchService;
     private final IndexingService indexingService;
     private final StatisticsService statisticsService;
-
 
     @Autowired
     SiteRepository siteRepository;
@@ -41,26 +40,30 @@ public class ApiController {
         if (isIndexing()) {
             indexingService.indexingStop();
             return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
-                    HttpStatus.BAD_REQUEST);
+                    HttpStatus.OK);
         }
         return indexingService.indexingStart();
     }
 
    @PostMapping("/indexPage")
-    public ResponseEntity<Object> indexPage(@RequestParam final String url) {
+    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://upakmarket.com") final String url) {
         return indexingService.indexingPageStart(url);}
 
 
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
+        if (!isIndexing())
+            return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
+                    HttpStatus.BAD_REQUEST);
         return indexingService.indexingStop();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> search(@RequestParam(defaultValue = "купить") String query,
+    public ResponseEntity<Object> search(@RequestParam(required = false) String query,
                                          @RequestParam(required = false, defaultValue = "") String site,
                                          @RequestParam(required = false) int offset,
-                                         @RequestParam(required = false) int limit) {
+                                         @RequestParam(required = false,defaultValue = "500") int limit)
+    {
 
         return searchService.search(query, site, offset, limit);
     }

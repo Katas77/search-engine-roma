@@ -37,7 +37,7 @@ public class SiteEntity {
 	@Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
 	private LocalDateTime statusTime;
 
-	@Column(columnDefinition = "TEXT", name = "last_error", length = 700)
+	@Column(name = "last_error", columnDefinition = "TEXT")
 	private String lastError;
 
 	@Column(columnDefinition = "VARCHAR(255)", nullable = false)

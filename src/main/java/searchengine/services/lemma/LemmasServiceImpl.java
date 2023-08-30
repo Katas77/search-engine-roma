@@ -1,6 +1,5 @@
 package searchengine.services.lemma;
 
-import com.sun.istack.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -13,7 +12,6 @@ import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
-import searchengine.tools.LemmaFinder;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -32,13 +30,12 @@ public class LemmasServiceImpl implements LemmaService {
 	private Integer countIndexes = 0;
 	private SiteEntity siteEntity;
 	private IndexEntity indexEntity;
-	private boolean scrapingIsDone = false;
-	private BlockingQueue<PageEntity> incomeQueue;
+	private boolean isDone = false;
+	private BlockingQueue<PageEntity> queue;
 	private Set<IndexEntity> indexEntities = new HashSet<>();
 	private Map<String, Integer> collectedLemmas = new HashMap<>();
 	private Map<String, LemmaEntity> lemmaEntities = new HashMap<>();
 	private final LemmaFinder lemmaFinder;
-	private final Integer INIT_FREQ = 1;
 	private final PageRepository pageRepository;
 	private final IndexRepository indexRepository;
 	private final LemmaRepository lemmaRepository;
@@ -47,11 +44,11 @@ public class LemmasServiceImpl implements LemmaService {
 		while (allowed()) {
 
 			if (!enabled) {
-				actionsAfterStop();
+				clearSaving();
 				return;
 			}
 
-			PageEntity pageEntity = incomeQueue.poll();
+			PageEntity pageEntity = queue.poll();
 			if (pageEntity != null) {
 				collectedLemmas = lemmaFinder.collectLemmas
 						(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
@@ -78,7 +75,7 @@ public class LemmasServiceImpl implements LemmaService {
 			lemmaEntities.get(lemma).setFrequency(oldFreq + 1);
 			lemmaObj = lemmaEntities.get(lemma);
 		} else {
-			lemmaObj = new LemmaEntity(siteEntity, lemma, INIT_FREQ);
+			lemmaObj = new LemmaEntity(siteEntity, lemma, 1);
 			lemmaEntities.put(lemma, lemmaObj);
 			countLemmas++;
 		}
@@ -102,7 +99,7 @@ public class LemmasServiceImpl implements LemmaService {
 		lemmaEntities.clear();
 	}
 
-	private @NotNull String logAboutEachSite() {
+	private  String logAboutEachSite() {
 		return countLemmas + " lemmas and "
 				+ countIndexes + " indexes saved "
 				+ "in DB from site with url "
@@ -110,7 +107,7 @@ public class LemmasServiceImpl implements LemmaService {
 	}
 
 	public Boolean allowed() {
-		return !scrapingIsDone | incomeQueue.iterator().hasNext();
+		return !isDone | queue.iterator().hasNext();
 	}
 
 	@Override
@@ -126,8 +123,8 @@ public class LemmasServiceImpl implements LemmaService {
 		}
 	}
 
-	private void actionsAfterStop() {
-		incomeQueue.clear();
+	private void clearSaving() {
+		queue.clear();
 		savingLemmas();
 		savingIndexes();
 		log.warn(logAboutEachSite());

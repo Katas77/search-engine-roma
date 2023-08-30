@@ -36,7 +36,7 @@ public class PageEntity {
 	@Column(nullable = false)
 	private int code;
 
-	@Column(length = 16_777_215, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
+	@Column(length = 5678945, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
 	private String content;
 
 	@ManyToMany(fetch = FetchType.LAZY)

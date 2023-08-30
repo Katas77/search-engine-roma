@@ -1,4 +1,4 @@
-package searchengine.request;
+package searchengine.dto.forAll;
 
 import lombok.Value;
 

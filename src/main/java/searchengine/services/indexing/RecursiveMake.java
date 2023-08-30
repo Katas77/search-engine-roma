@@ -1,5 +1,4 @@
 package searchengine.services.indexing;
-
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -14,18 +13,14 @@ import org.springframework.core.env.Environment;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.PageRepository;
-import searchengine.tools.AcceptableContentTypes;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import static java.lang.Thread.sleep;
-import static searchengine.tools.Regex.*;
-import static searchengine.tools.StringPool.*;
+import static searchengine.services.indexing.StringPool.*;
 
 @Slf4j
 @Getter
@@ -33,7 +28,7 @@ import static searchengine.tools.StringPool.*;
 @RequiredArgsConstructor
 public class RecursiveMake extends RecursiveAction {
 
-	public static volatile Boolean offOn = true;
+	public static volatile Boolean isActive = true;
 	public String homeUrl;
 	public String siteUrl;
 	private String currentUrl;
@@ -47,7 +42,14 @@ public class RecursiveMake extends RecursiveAction {
 	private Environment environment;
 	private final PageRepository pageRepository;
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	private static final AcceptableContentTypes TYPES = new AcceptableContentTypes();
+	public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
+	public static final String urlValid = "^(ht|f)tp(s?)://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(/?)([a-zA-Z0-9\\-.,'=/\\\\+%_]*)?$";
+	public static final ArrayList<String> HTML_EXT = new ArrayList<>() {{
+		add("html");
+		add("dhtml");
+		add("shtml");
+		add("xhtml");
+	}};
 
 
 	public RecursiveMake(String currentUrl,
@@ -61,13 +63,14 @@ public class RecursiveMake extends RecursiveAction {
 		this.homeUrl = homeUrl;
 		this.siteUrl = siteUrl;
 	}
-
 	@Override
 	protected void compute() {
-		if (!offOn)
+		if (!isActive)
 			return;
 		lock.readLock().lock();
-		if (!visitedLinks.containsKey(currentUrl)) internVisitedLinks(currentUrl);
+
+		if (!visitedLinks.containsKey(currentUrl))
+			internVisitedLinks(currentUrl);
 		lock.readLock().unlock();
 		try {
 			response = Jsoup.connect(currentUrl).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
@@ -77,15 +80,12 @@ public class RecursiveMake extends RecursiveAction {
 			parentPath = "/" + currentUrl.replace(homeUrl, "");
 			cleanHtmlContent();
 			pageEntity = new PageEntity(siteEntity, response.statusCode(), document.html(), parentPath);
-
 		} catch (IOException | UncheckedIOException exception) {
 			urlNotAvailableActions(currentUrl, exception);
-
 		}
 		if (Objects.equals(environment.getProperty("user-settings.logging-enable"), "true")) {
 			log.info("Response from " + currentUrl + " got successfully");
 		}
-
 		saveExtractedPage();
 		final Elements elements = document.select("a[href]");
 		if (!elements.isEmpty()) {
@@ -95,10 +95,8 @@ public class RecursiveMake extends RecursiveAction {
 	}
 	public Set<String> getChildLinks(String url, Elements elements) {
 		Set<String> newChildLinks = new HashSet<>();
-
 		for (Element element : elements) {
 			final String href = getHrefFromElement(element).toLowerCase();
-
 			lock.readLock().lock();
 			if (visitedLinks.containsKey(href))
 				continue;
@@ -119,14 +117,14 @@ public class RecursiveMake extends RecursiveAction {
 	}
 
 	private boolean urlIsValidToProcess(String sourceUrl, Set<String> newChildLinks, String extractedHref) {
-		return sourceUrl.matches(URL_IS_VALID)
+		return sourceUrl.matches(urlValid)
 				&& extractedHref.startsWith(siteUrl)
 				&& !extractedHref.contains("#")
 				&& !extractedHref.equals(sourceUrl)
 				&& !newChildLinks.contains(extractedHref)
 				&&
 				(HTML_EXT.stream().anyMatch(extractedHref.substring(extractedHref.length() - 4)::contains)
-						| !extractedHref.matches(URL_IS_FILE_LINK));
+						| !extractedHref.matches(urlLink));
 	}
 
 
@@ -149,7 +147,6 @@ public class RecursiveMake extends RecursiveAction {
 			document.title(oldTitle);
 		}
 	}
-
 	private void saveExtractedPage() {
 		lock.readLock().lock();
 		if (!savedPaths.containsKey(parentPath)) {
@@ -162,7 +159,7 @@ public class RecursiveMake extends RecursiveAction {
 	}
 
 	private void forkAndJoinTasks() {
-		if (!offOn)
+		if (!isActive)
 			return;
 
 		List<RecursiveMake> subTasks = new LinkedList<>();
@@ -181,7 +178,7 @@ public class RecursiveMake extends RecursiveAction {
 
 	private boolean childIsValidToFork(String subLink) {
 		final String ext = subLink.substring(subLink.length() - 4);
-		return (HTML_EXT.stream().anyMatch(ext::contains) | !subLink.matches(URL_IS_FILE_LINK));
+		return (HTML_EXT.stream().anyMatch(ext::contains) | !subLink.matches(urlLink));
 	}
 
 	public String getHrefFromElement(Element element) {
@@ -197,7 +194,7 @@ public class RecursiveMake extends RecursiveAction {
 	private void putPageEntityToOutcomeQueue() {
 		try {
 			while (true) {
-				if (outcomeQueue.remainingCapacity() < 5 && offOn)
+				if (outcomeQueue.remainingCapacity() < 5 && isActive)
 					sleep(5_000);
 				else
 					break;

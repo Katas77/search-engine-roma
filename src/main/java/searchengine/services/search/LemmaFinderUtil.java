@@ -25,7 +25,6 @@ public class LemmaFinderUtil {
     }
 
 
-
     public List<String> getLemma(String word) {
         List<String> lemmaList = new ArrayList<>();
         try {
@@ -54,12 +53,6 @@ public class LemmaFinderUtil {
             index += element.length() + 1;
         }
         return lemmaIndexList;
-    }
-
-    private String clearText(String text) {
-        return text.toLowerCase(Locale.ROOT)
-                .replaceAll("([^а-я\\s])", " ")
-                .trim();
     }
 
     private boolean isRussianWord(String word) {

@@ -16,7 +16,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.request.BadRequest;
+import searchengine.dto.forAll.BadRequest;
 import searchengine.services.indexing.JsoupConnect;
 
 
@@ -37,39 +37,41 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
-        System.out.println(query+"          "+url+"          "+offset+"          "+limit);
-        if (query==null||query.isEmpty()) {
-            return new ResponseEntity<>(new BadRequest(false, "Задан пустой поисковый запрос"),
-                    HttpStatus.BAD_REQUEST);
-        } else {
-            List<SearchData> searchData;
-            if (!url.isEmpty()) {
-                if (siteRepository.findByUrl(url) == null) {
-                    return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов, " +
-                            "указанных в конфигурационном файле"),
-                            HttpStatus.BAD_REQUEST);
-                } else {
-                    searchData = onePageSearch(query, url, offset, limit);
-                }
-            } else {
-                searchData = searchThroughAllSites(query, offset, limit);
-            }
-            if (searchData == null) {
-                return new ResponseEntity<>(new BadRequest(false, "По данному запросу ни чего не найдено."),
+        System.out.println(query + "    -   " + url + "    -      " + offset + "     -     " + limit);
+        List<SearchData> searchData;
+        if (!url.isEmpty()) {
+            if (siteRepository.findByUrl(url) == null) {
+                return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов, " +
+                        "указанных в конфигурационном файле"),
                         HttpStatus.BAD_REQUEST);
+            } else {
+                searchData = onePageSearch(query, url, offset, limit);
             }
-            return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
+        } else {
+            searchData = searchThroughAllSites(query, offset, limit);
         }
+        if (query == null || query.isEmpty() || searchData == null) {
+            searchData = new ArrayList<>();
+            return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
+        }
+        for (SearchData data:searchData)
+        {
+            System.out.println(data.getSiteName());
+            System.out.println(query);
+            System.out.println(data.getUri());
+        }
+        return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
+
     }
 
 
     public List<SearchData> searchThroughAllSites(String query, int offset, int limit) {
 
-        log.info( "-> Запускаем поиск по сайтам для запроса: "+ query);
+        log.info( "Запускаем поиск по сайтам для запроса: "+ query);
         List<SiteEntity> sites = siteRepository.findAll();
         List<LemmaEntity> sortedLemmasPerSite = new ArrayList<>();
-
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
+
         for (SiteEntity siteEntity : sites) {
             sortedLemmasPerSite.addAll(getLemmasFromSite(lemmasFromQuery, siteEntity));
         }
@@ -78,20 +80,19 @@ public class SearchServiceImpl implements SearchService {
             if (lemmaEntity.getLemma().equals(query)) {
                 searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery, offset, limit));
                 searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
-
             }
         }
-        log.info("-> Поиск по сайтам завершен.");
+        log.info(" Поиск по сайтам завершен.");
         return searchData;
     }
 
 
     public List<SearchData> onePageSearch(String query, String url, int offset, int limit) {
-        log.info( "-> Запускаем поиск по сайтам для запроса: "+ query);
+        log.info( "Запускаем поиск по сайтам для запроса: "+ query);
         SiteEntity siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
         List<LemmaEntity> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
-        log.info("-> Поиск по сайтам завершен.");
+        log.info("Поиск по сайтам завершен.");
         return getSearchDataList(lemmasFromSite, lemmasFromQuery, offset, limit);
     }
 
@@ -157,8 +158,8 @@ public class SearchServiceImpl implements SearchService {
             String content = pageEntity.getContent();
             String title = jsoupConnects.getTitleFromHtml(content);
             SiteEntity siteEntity = pageEntity.getSiteEntity();
-            String site = siteEntity.getUrl();
             String siteName = siteEntity.getName();
+            String site = "https://"+siteName;
             Float absRelevance = sortedPages.get(pageEntity);
             String clearContent = lemmaFinderUtil.removeHtmlTags(content);
             String snippet = getSnippet(clearContent, lemmasFromQuey);

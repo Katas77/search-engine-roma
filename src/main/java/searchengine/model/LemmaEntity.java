@@ -1,19 +1,13 @@
 package searchengine.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
-@Setter
-@Getter
+@Data
 @Entity
 @AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "lemma", indexes = @Index(name = "lemma_index", columnList = "lemma, site_id, id", unique = true))
 public class LemmaEntity {
 
@@ -43,16 +37,8 @@ public class LemmaEntity {
 		this.frequency = frequency;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		LemmaEntity that = (LemmaEntity) o;
-		return frequency == that.frequency && siteEntity.equals(that.siteEntity) && lemma.equals(that.lemma) && pageEntities.equals(that.pageEntities);
+	public LemmaEntity() {
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(siteEntity, lemma, frequency, pageEntities);
-	}
+
 }

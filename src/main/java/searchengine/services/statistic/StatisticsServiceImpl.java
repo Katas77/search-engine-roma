@@ -54,7 +54,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private DetailedStatisticsItem getDetailed(SiteEntity site) {
-        String url = site.getUrl();
+        String url = "https://www."+site.getName();
         String name = site.getName();
         String status = site.getStatus().toString();
         LocalDateTime statusTime = site.getStatusTime();

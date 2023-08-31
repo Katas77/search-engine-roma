@@ -46,7 +46,7 @@ public class ApiController {
     }
 
    @PostMapping("/indexPage")
-    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://upakmarket.com") final String url) {
+    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://www.lenta.ru") final String url) {
         return indexingService.indexingPageStart(url);}
 
 
@@ -59,7 +59,7 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> search(@RequestParam(required = false) String query,
+    public ResponseEntity<Object> search(@RequestParam(required = false,defaultValue = "смартфон") String query,
                                          @RequestParam(required = false, defaultValue = "") String site,
                                          @RequestParam(required = false) int offset,
                                          @RequestParam(required = false,defaultValue = "500") int limit)

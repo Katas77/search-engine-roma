@@ -11,7 +11,7 @@ public interface LemmaService {
 	void setSiteEntity(SiteEntity siteEntity);
 
 	void startCollecting();
-	void setEnabled(boolean value);
+	void setOffOn(boolean value);
 	LemmaEntity createLemmaEntity(String lemma);
 	Boolean allowed();
 	void setDone(boolean b);

@@ -7,8 +7,6 @@ import javax.persistence.*;
 @Setter
 @Getter
 @Entity
-@Immutable
-@NoArgsConstructor
 @Table(name = "search_index")
 public class IndexEntity {
 
@@ -32,5 +30,8 @@ public class IndexEntity {
 		this.pageEntity = pageEntity;
 		this.lemmaEntity = lemmaEntity;
 		this.lemmaRank = lemmaRank;
+	}
+
+	public IndexEntity() {
 	}
 }

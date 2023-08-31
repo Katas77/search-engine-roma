@@ -56,9 +56,9 @@ public class SearchServiceImpl implements SearchService {
         }
         for (SearchData data:searchData)
         {
-            System.out.println(data.getSiteName());
-            System.out.println(query);
-            System.out.println(data.getUri());
+
+            System.out.println("'"+query+"'"+" - найдено:");
+            System.out.println("https://"+data.getSiteName()+data.getUri());
         }
         return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
 

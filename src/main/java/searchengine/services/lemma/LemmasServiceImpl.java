@@ -24,7 +24,7 @@ import static java.lang.Thread.sleep;
 @RequiredArgsConstructor
 public class LemmasServiceImpl implements LemmaService {
 
-	private Boolean enabled = true;
+	private Boolean offOn = true;
 	private Integer countPages = 0;
 	private Integer countLemmas = 0;
 	private Integer countIndexes = 0;
@@ -43,7 +43,7 @@ public class LemmasServiceImpl implements LemmaService {
 	public void startCollecting() {
 		while (allowed()) {
 
-			if (!enabled) {
+			if (!offOn) {
 				clearSaving();
 				return;
 			}
@@ -86,7 +86,7 @@ public class LemmasServiceImpl implements LemmaService {
 		long idxSave = System.currentTimeMillis();
 
 		indexRepository.saveAll(indexEntities);
-		sleeping(200, "Error sleeping after saving lemmas");
+		sleeping(200, " sleeping after saving lemmas");
 		log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
 		indexEntities.clear();
 	}
@@ -110,9 +110,8 @@ public class LemmasServiceImpl implements LemmaService {
 		return !isDone | queue.iterator().hasNext();
 	}
 
-	@Override
-	public void setEnabled(boolean value) {
-		enabled = value;
+	public void setOffOn(boolean value) {
+		offOn = value;
 	}
 
 	private static void sleeping(int millis, String s) {

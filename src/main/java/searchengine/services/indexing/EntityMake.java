@@ -23,7 +23,7 @@ import java.util.*;
 @Setter
 @RequiredArgsConstructor
 @Component
-public class TablesMake {
+public class EntityMake {
 
 	private final SitesList sitesList;
 	private final Environment environment;
@@ -33,13 +33,13 @@ public class TablesMake {
 	private final IndexRepository indexRepository;
 
 
-	public Set<SiteEntity> setSites() {
+	public ArrayList<SiteEntity> listSitesEntity() {
 		sitesList.getSites().forEach(site -> System.out.println(site.getName()));
 		indexRepository.deleteAllInBatch();
 		lemmaRepository.deleteAllInBatch();
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
-		Set<SiteEntity> setSiteEntity = new HashSet<>();
+		ArrayList<SiteEntity> setSiteEntity = new ArrayList<>();
 		sitesList.getSites().forEach(site -> setSiteEntity.add(newSiteEntity(site)));
 		setSiteEntity.forEach(entity -> {siteRepository.save(entity);
 		});

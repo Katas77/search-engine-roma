@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import searchengine.config.Site;
 import searchengine.config.SitesList;
 import searchengine.model.Status;
 import searchengine.model.PageEntity;
@@ -31,7 +29,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Getter
 @Component
 @RequiredArgsConstructor
-public class IndexingOperationsImpl implements IndexingOperations {
+public class IndexingTools {
 
     private Boolean isActive = true;
     private SiteEntity siteEntity;
@@ -44,7 +42,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
     private final SiteRepository siteRepository;
     private final LemmaService lemmaService;
 
-    @Override
+
     public void startTreadsIndexing(ArrayList<SiteEntity> siteEntities) {
         log.warn("Full indexing will be started now");
         ForkJoinPool joinPool = new ForkJoinPool();
@@ -90,7 +88,7 @@ public class IndexingOperationsImpl implements IndexingOperations {
         log.warn("thread finished, latch =  " + latch.getCount());
     }
 
-    @Override
+
     public void startPartialIndexing(SiteEntity siteEntity) {
         log.warn("Partial indexing will be started now");
       ArrayList<SiteEntity> oneEntitySet = new ArrayList<>();

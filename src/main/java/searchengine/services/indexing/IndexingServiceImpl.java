@@ -20,7 +20,7 @@ import java.util.*;
 public class IndexingServiceImpl implements IndexingService {
 
     private final EntityMake entityMake;
-    private final IndexingOperations indexingOperations;
+    private final IndexingTools tools;
     public final SiteRepository siteRepository;
 
 
@@ -31,7 +31,7 @@ public class IndexingServiceImpl implements IndexingService {
         if (siteEntities.size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Пустой  список сайтов"),
                     HttpStatus.BAD_REQUEST);
-        Thread thread = new Thread(() -> indexingOperations.startTreadsIndexing(siteEntities));
+        Thread thread = new Thread(() -> tools.startTreadsIndexing(siteEntities));
         thread.start();
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
@@ -47,7 +47,7 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
 
-        Thread thread = new Thread(() -> indexingOperations.startPartialIndexing(siteEntity), "indexingActions-thread");
+        Thread thread = new Thread(() -> tools.startPartialIndexing(siteEntity), "indexingActions-thread");
         thread.start();
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
@@ -55,8 +55,8 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingStop() {
         log.warn("--stopIndexing --");
-       indexingOperations.setIsActive(false);
-       indexingOperations.setIndexingStarted(false);
+       tools.setIsActive(false);
+       tools.setIndexingStarted(false);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
 

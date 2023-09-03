@@ -21,22 +21,19 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-
+    String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
+    String[] errors = {
+            "Ошибка индексации: главная страница сайта не доступна",
+            "Ошибка индексации: сайт не доступен",
+            ""
+    };
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
     private final SitesList sites;
 
-
-
     @Override
     public StatisticsResponse getStatistics() {
-        String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
-        String[] errors = {
-                "Ошибка индексации: главная страница сайта не доступна",
-                "Ошибка индексации: сайт не доступен",
-                ""
-        };
         StatisticsResponse response = new StatisticsResponse();
         StatisticsData data = new StatisticsData();
         data.setTotal(getTotal());

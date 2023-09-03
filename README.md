@@ -4,7 +4,7 @@
 
 <h2 align="center">
 
-![image](./image/3.PNG )</h2>
+![image](./image/3.png )</h2>
 
 
 ## Описание:
@@ -25,7 +25,7 @@
 - При нажатии start Indexing, движок самостоятельно обходит все страницы заданных сайтов и индексирует, чтобы потом находить наиболее релевантные страницы по запросу “query”
 <h2 align="center" style="margin: 0; padding: 0;">
 
-  ![image](./image/2.PNG )</h2>
+  ![image](./image/2.png )</h2>
 ____
 
 - Пользователь присылает запрос через API движка, по которым нужно найти страницы сайта.
@@ -34,7 +34,7 @@ ____
 
   <h2 align="center" style="margin: 0; padding: 0;">
 
-  ![image](./image/4.PNG)</h2>
+  ![image](./image/4.png)</h2>
 
 
 
@@ -49,7 +49,7 @@ ____
 
 <h2 align="center">
 
-![image](./image/5.PNG )</h2>
+![image](./image/5.png )</h2>
 
 ## Используемые технологии:
 

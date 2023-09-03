@@ -11,6 +11,7 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.indexing.IndexingServiceImpl;
 
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
     private final SitesList sites;
+
 
 
     @Override
@@ -47,7 +49,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private TotalStatistics getTotal() {
         long sites = siteRepository.count();
         if (siteRepository.count()==0)
-        {sites= this.sites.getSites().size();}
+        {sites= IndexingServiceImpl.oneUrl==""?this.sites.getSites().size():this.sites.getSites().size()+1;}
         long pages = pageRepository.count();
         long lemmas = lemmaRepository.count();
         return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);

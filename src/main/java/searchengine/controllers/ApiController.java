@@ -46,7 +46,7 @@ public class ApiController {
     }
 
    @PostMapping("/indexPage")
-    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://www.lenta.ru") final String url) {
+    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://upakmarket.com") final String url) {
         return indexingService.indexingPageStart(url);}
 
 

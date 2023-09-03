@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import searchengine.config.Site;
@@ -33,17 +34,21 @@ public class EntityMake {
 	private final IndexRepository indexRepository;
 
 
-	public ArrayList<SiteEntity> listSitesEntity() {
-		sitesList.getSites().forEach(site -> System.out.println(site.getName()));
+	public ArrayList<SiteEntity> listSitesEntity( String url) {
+
 		indexRepository.deleteAllInBatch();
 		lemmaRepository.deleteAllInBatch();
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
-		ArrayList<SiteEntity> setSiteEntity = new ArrayList<>();
-		sitesList.getSites().forEach(site -> setSiteEntity.add(newSiteEntity(site)));
-		setSiteEntity.forEach(entity -> {siteRepository.save(entity);
+		ArrayList<SiteEntity> list = new ArrayList<>();
+		sitesList.getSites().forEach(site -> list.add(newSiteEntity(site)));
+		if (url!=""){
+		list.add(oneSiteEntity(url));}
+		list.forEach(entity -> {siteRepository.save(entity);
+
 		});
-		return setSiteEntity;
+		list.forEach(site -> System.out.println(site.getName()));
+		return list;
 	}
 
 	private SiteEntity newSiteEntity(Site site) {
@@ -57,7 +62,6 @@ public class EntityMake {
 	}
 
 	public SiteEntity oneSiteEntity(String site) {
-
 		SiteEntity siteEntity = new SiteEntity();
 		siteEntity.setStatus(Status.INDEXING);
 		siteEntity.setStatusTime(LocalDateTime.now());
@@ -65,7 +69,6 @@ public class EntityMake {
 		siteEntity.setUrl(site);
 		String name=site.replace("https://","");
 		siteEntity.setName(name);
-		siteRepository.save(siteEntity);
 		return siteEntity;
 	}
 

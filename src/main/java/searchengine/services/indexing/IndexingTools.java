@@ -19,10 +19,7 @@ import searchengine.services.lemma.LemmaService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 @Slf4j
 @Setter
@@ -30,42 +27,40 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Component
 @RequiredArgsConstructor
 public class IndexingTools {
-
+    private ExecutorService executorService;
+    private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
     private Boolean isActive = true;
-    private SiteEntity siteEntity;
     private BlockingQueue<PageEntity> blockingQueue = new LinkedBlockingQueue<>(1_00);
     private boolean indexingStarted;
-    private final SitesList sitesList;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final SiteRepository siteRepository;
     private final LemmaService lemmaService;
 
+    public synchronized void  startTreadsIndexing(SiteEntity siteEntity) {
 
-    public void startTreadsIndexing(ArrayList<SiteEntity> siteEntities) {
         log.warn("Full indexing will be started now");
         ForkJoinPool joinPool = new ForkJoinPool();
-        setIndexingStarted(true);
-        for (SiteEntity siteEntity : siteEntities) {
-           flosses(joinPool,siteEntity);
+        if (!isActive) {
+            stopActions(joinPool);
         }
-        stopActions(joinPool);
-        this.setIndexingStarted(false);
-    }
-    private void flosses(@NotNull ForkJoinPool pool, SiteEntity siteEntity) {
-        CountDownLatch latch = new CountDownLatch(3);
+        setIndexingStarted(true);
+        CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
-        Thread recursivThread = new Thread(() -> RecursiveThreadBody(pool, siteEntity, latch), "Recursive-thread");
-        Thread lemmasCollectorThread = new Thread(() -> lemmasThreadBody(siteEntity, latch), "lemmas-thread");
+        Thread recursivThread = new Thread(() -> RecursiveThreadBody(joinPool, siteEntity, latch));
+        Thread lemmasCollectorThread = new Thread(() -> lemmasThreadBody(siteEntity, latch));
         recursivThread.start();
         lemmasCollectorThread.start();
         try {
             latch.await();
+
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }
         updateEntity(siteEntity);
+
+        this.setIndexingStarted(false);
     }
 
 
@@ -89,16 +84,9 @@ public class IndexingTools {
     }
 
 
-    public void startPartialIndexing(SiteEntity siteEntity) {
-        log.warn("Partial indexing will be started now");
-      ArrayList<SiteEntity> oneEntitySet = new ArrayList<>();
-        oneEntitySet.add(siteEntity);
-        startTreadsIndexing(oneEntitySet);
-    }
-
     private void stopActions(ForkJoinPool pool) {
         try {
-            log.warn("STOP");
+            log.warn("---остановлено пользователем----");
             Thread.sleep(5_000);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());

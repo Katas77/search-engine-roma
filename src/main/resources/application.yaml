@@ -2,12 +2,12 @@
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru
-      name: playBack.Ru
-    - url: https://upakmarket.com
-      name: upakmarket.com
+    - url: https://www.skillbox.ru
+      name: skillbox
     - url: https://www.lenta.ru
       name: lenta.ru
+    - url: https://www.playback.ru
+      name: playBack.Ru
 server:
   port: 8080
 

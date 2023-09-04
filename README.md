@@ -1,8 +1,10 @@
 <center><font size="6" face="Georgia"> <h1> «Поисковый движок»
 <br/>
-Итоговый проект курса "Java-разработчик с нуля" </h1></font>
+</h1></font>
 </center>
-
+<center><font size="4" face="Georgia"> <h1>
+"Итоговый проект курса "Java-разработчик с нуля" </h1></font>
+</center>
 
 <h2 align="center">
 

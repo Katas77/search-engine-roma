@@ -17,7 +17,8 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.BadRequest;
-import searchengine.services.indexing.JsoupConnect;
+import searchengine.utils.indexing.JsoupConnect;
+import searchengine.utils.searchandLemma.LemmaFinderUtil;
 
 
 import java.util.*;

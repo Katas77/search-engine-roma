@@ -1,4 +1,4 @@
-package searchengine.services.search;
+package searchengine.utils.searchandLemma;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;

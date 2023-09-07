@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils.indexing;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -46,7 +46,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private TotalStatistics getTotal() {
         long sites = siteRepository.count();
         if (siteRepository.count()==0)
-        {sites= IndexingServiceImpl.oneUrl==""?this.sites.getSites().size():this.sites.getSites().size()+1;}
+        {sites= this.sites.getSites().size();}
         long pages = pageRepository.count();
         long lemmas = lemmaRepository.count();
         return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);

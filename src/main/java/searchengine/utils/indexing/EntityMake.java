@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils.indexing;
 
 
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class EntityMake {
 	private final IndexRepository indexRepository;
 
 
-	public ArrayList<SiteEntity> listSitesEntity( String url) {
+	public ArrayList<SiteEntity> listSitesEntity( ) {
 
 		indexRepository.deleteAllInBatch();
 		lemmaRepository.deleteAllInBatch();
@@ -42,8 +42,7 @@ public class EntityMake {
 		siteRepository.deleteAllInBatch();
 		ArrayList<SiteEntity> list = new ArrayList<>();
 		sitesList.getSites().forEach(site -> list.add(newSiteEntity(site)));
-		if (url!=""){
-		list.add(oneSiteEntity(url));}
+
 		list.forEach(entity -> {siteRepository.save(entity);
 
 		});

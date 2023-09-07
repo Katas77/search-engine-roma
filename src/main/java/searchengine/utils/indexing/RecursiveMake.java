@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils.indexing;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
@@ -18,7 +18,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static java.lang.Thread.sleep;
-import static searchengine.services.indexing.StringPool.*;
+import static searchengine.utils.indexing.StringPool.*;
 
 @Slf4j
 @Getter

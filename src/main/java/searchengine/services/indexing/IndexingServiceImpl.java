@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.BadRequest;
 import searchengine.dto.forAll.OkResponse;
+import searchengine.utils.indexing.EntityMake;
+import searchengine.utils.indexing.IndexingTools;
 
 import java.util.*;
 
@@ -21,16 +23,16 @@ public class IndexingServiceImpl implements IndexingService {
     private final EntityMake entityMake;
     private final IndexingTools tools;
     public final SiteRepository siteRepository;
-    public static String oneUrl = "";
+
 
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.warn("--метод startIndexing запущен--");
-        if ( entityMake.listSitesEntity(oneUrl).size() == 0)
+        if ( entityMake.listSitesEntity().size() == 0)
             return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
                     HttpStatus.BAD_REQUEST);
         List<Thread> threadList = new ArrayList<>();
-        entityMake.listSitesEntity(oneUrl).forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity))));
+        entityMake.listSitesEntity().forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity))));
 
         threadList.forEach(Thread::start);
 
@@ -47,7 +49,7 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
 
-        oneUrl = url;
+
 
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }

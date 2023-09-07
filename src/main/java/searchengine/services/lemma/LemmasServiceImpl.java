@@ -12,6 +12,7 @@ import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
+import searchengine.utils.searchandLemma.LemmaFinder;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;

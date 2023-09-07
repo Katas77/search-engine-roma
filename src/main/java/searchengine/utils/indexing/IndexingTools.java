@@ -1,4 +1,4 @@
-package searchengine.services.indexing;
+package searchengine.utils.indexing;
 
 import com.sun.istack.NotNull;
 import lombok.Getter;
@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
-import searchengine.config.SitesList;
 import searchengine.model.Status;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
@@ -18,7 +17,6 @@ import searchengine.repositories.SiteRepository;
 import searchengine.services.lemma.LemmaService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.concurrent.*;
 
 @Slf4j

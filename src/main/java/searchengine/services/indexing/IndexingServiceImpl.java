@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import searchengine.config.Site;
+import searchengine.config.SitesList;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.BadRequest;
 import searchengine.dto.forAll.OkResponse;
@@ -23,19 +25,15 @@ public class IndexingServiceImpl implements IndexingService {
     private final EntityMake entityMake;
     private final IndexingTools tools;
     public final SiteRepository siteRepository;
+    private final SitesList sitesList;
 
 
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.warn("--метод startIndexing запущен--");
-        if ( entityMake.listSitesEntity().size() == 0)
-            return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
-                    HttpStatus.BAD_REQUEST);
         List<Thread> threadList = new ArrayList<>();
         entityMake.listSitesEntity().forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity))));
-
         threadList.forEach(Thread::start);
-
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
 

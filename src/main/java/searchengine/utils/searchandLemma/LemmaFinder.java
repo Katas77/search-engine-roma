@@ -2,6 +2,7 @@ package searchengine.utils.searchandLemma;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
+import org.apache.lucene.morphology.english.EnglishLuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.*;
 @Component
 public class LemmaFinder {
 
+LuceneMorphology luceneMorphology2=new EnglishLuceneMorphology();
 	private static final String[] PARTICLES_NAMES = {"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
 	private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
 

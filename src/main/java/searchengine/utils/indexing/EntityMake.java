@@ -35,17 +35,13 @@ public class EntityMake {
 
 
 	public ArrayList<SiteEntity> listSitesEntity( ) {
-
 		indexRepository.deleteAllInBatch();
 		lemmaRepository.deleteAllInBatch();
 		pageRepository.deleteAllInBatch();
 		siteRepository.deleteAllInBatch();
 		ArrayList<SiteEntity> list = new ArrayList<>();
 		sitesList.getSites().forEach(site -> list.add(newSiteEntity(site)));
-
-		list.forEach(entity -> {siteRepository.save(entity);
-
-		});
+		list.forEach(siteRepository::save);
 		list.forEach(site -> System.out.println(site.getName()));
 		return list;
 	}

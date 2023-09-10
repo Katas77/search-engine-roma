@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
@@ -16,6 +15,7 @@ import searchengine.utils.searchandLemma.LemmaFinder;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+
 import static java.lang.Thread.sleep;
 
 @Slf4j
@@ -100,7 +100,7 @@ public class LemmasServiceImpl implements LemmaService {
 		lemmaEntities.clear();
 	}
 
-	private  String logAboutEachSite() {
+	private String logAboutEachSite() {
 		return countLemmas + " lemmas and "
 				+ countIndexes + " indexes saved "
 				+ "in DB from site with url "

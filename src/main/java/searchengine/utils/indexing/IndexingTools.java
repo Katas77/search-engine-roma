@@ -27,7 +27,6 @@ import java.util.concurrent.*;
 public class IndexingTools {
     private ExecutorService executorService;
     private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
-    private Boolean isActive = true;
     private BlockingQueue<PageEntity> blockingQueue = new LinkedBlockingQueue<>(1_00);
     private boolean indexingStarted;
     private final PageRepository pageRepository;
@@ -35,14 +34,10 @@ public class IndexingTools {
     private final IndexRepository indexRepository;
     private final SiteRepository siteRepository;
     private final LemmaService lemmaService;
+    ForkJoinPool joinPool = new ForkJoinPool();
 
     public synchronized void  startTreadsIndexing(SiteEntity siteEntity) {
-
         log.warn("Full indexing will be started now");
-        ForkJoinPool joinPool = new ForkJoinPool();
-        if (!isActive) {
-            stopActions(joinPool);
-        }
         setIndexingStarted(true);
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
@@ -82,22 +77,19 @@ public class IndexingTools {
     }
 
 
-    private void stopActions(ForkJoinPool pool) {
+
+
+    public void setIsActive(boolean value) {
         try {
             log.warn("---остановлено пользователем----");
             Thread.sleep(5_000);
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         } finally {
-            pool.shutdownNow();
-            this.setIsActive(true);
-            this.setIndexingStarted(false);
+            joinPool.shutdownNow();
 
         }
-    }
 
-    public void setIsActive(boolean value) {
-        isActive = value;
         lemmaService.setOffOn(value);
         RecursiveMake.isActive = value;
     }
@@ -116,7 +108,7 @@ public class IndexingTools {
                 siteEntity.setLastError("Ошибка индексации: сайт не доступен");
             }
         }
-        if (isActive) {
+        if (RecursiveMake.isActive) {
             log.warn("Status of site " + siteEntity.getName()
                     + " set to " + siteEntity.getStatus().toString()
                     + ", error set to " + siteEntity.getLastError());

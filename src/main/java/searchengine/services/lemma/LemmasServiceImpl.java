@@ -24,18 +24,17 @@ import static java.lang.Thread.sleep;
 @Service
 @RequiredArgsConstructor
 public class LemmasServiceImpl implements LemmaService {
-
 	private Boolean offOn = true;
 	private Integer countPages = 0;
 	private Integer countLemmas = 0;
 	private Integer countIndexes = 0;
-	private SiteEntity siteEntity;
-	private IndexEntity indexEntity;
-	private boolean isDone = false;
-	private BlockingQueue<PageEntity> queue;
-	private Set<IndexEntity> indexEntities = new HashSet<>();
+	private Website siteEntity;
+	private Indexes indexEntity;
+	private volatile boolean isDone = false;
+	private BlockingQueue<Page> queue;
+	private Set<Indexes> indexEntities = new HashSet<>();
 	private Map<String, Integer> collectedLemmas = new HashMap<>();
-	private Map<String, LemmaEntity> lemmaEntities = new HashMap<>();
+	private Map<String, Lemma> lemmaEntities = new HashMap<>();
 	private final LemmaFinder lemmaFinder;
 	private final PageRepository pageRepository;
 	private final IndexRepository indexRepository;
@@ -49,15 +48,15 @@ public class LemmasServiceImpl implements LemmaService {
 				return;
 			}
 
-			PageEntity pageEntity = queue.poll();
+			Page pageEntity = queue.poll();
 			if (pageEntity != null) {
 				collectedLemmas = lemmaFinder.collectLemmas
 						(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
 
 				for (String lemma : collectedLemmas.keySet()) {
 					int rank = collectedLemmas.get(lemma);
-					LemmaEntity lemmaEntity = createLemmaEntity(lemma);
-					indexEntities.add(new IndexEntity(pageEntity, lemmaEntity, rank));
+					Lemma lemmaEntity = createLemmaEntity(lemma);
+					indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
 					countIndexes++;
 				}
 			} else {
@@ -69,14 +68,14 @@ public class LemmasServiceImpl implements LemmaService {
 		log.warn(logAboutEachSite());
 	}
 
-	public LemmaEntity createLemmaEntity(String lemma) {
-		LemmaEntity lemmaObj;
+	public Lemma createLemmaEntity(String lemma) {
+		Lemma lemmaObj;
 		if (lemmaEntities.containsKey(lemma)) {
 			int oldFreq = lemmaEntities.get(lemma).getFrequency();
 			lemmaEntities.get(lemma).setFrequency(oldFreq + 1);
 			lemmaObj = lemmaEntities.get(lemma);
 		} else {
-			lemmaObj = new LemmaEntity(siteEntity, lemma, 1);
+			lemmaObj = new Lemma(siteEntity, lemma, 1);
 			lemmaEntities.put(lemma, lemmaObj);
 			countLemmas++;
 		}
@@ -85,9 +84,8 @@ public class LemmasServiceImpl implements LemmaService {
 
 	private void savingIndexes() {
 		long idxSave = System.currentTimeMillis();
-
 		indexRepository.saveAll(indexEntities);
-		sleeping(200, " sleeping after saving lemmas");
+		sleeping(50, " sleeping after saving lemmas");
 		log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
 		indexEntities.clear();
 	}
@@ -95,7 +93,7 @@ public class LemmasServiceImpl implements LemmaService {
 	private void savingLemmas() {
 		long lemmaSave = System.currentTimeMillis();
 		lemmaRepository.saveAll(lemmaEntities.values());
-		sleeping(200, "Error sleeping after saving lemmas");
+		sleeping(50, "Error sleeping after saving lemmas");
 		log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
 		lemmaEntities.clear();
 	}

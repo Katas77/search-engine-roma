@@ -9,7 +9,7 @@ import java.util.Set;
 @Entity
 @AllArgsConstructor
 @Table(name = "lemma", indexes = @Index(name = "lemma_index", columnList = "lemma, site_id, id", unique = true))
-public class LemmaEntity {
+public class Lemma {
 
 	@Id
 	@Column(nullable = false)
@@ -19,7 +19,7 @@ public class LemmaEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(foreignKey = @ForeignKey(name = "lemma_site_FK"), columnDefinition = "Integer",
 			referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
-	private SiteEntity siteEntity;
+	private Website siteEntity;
 
 	@Column(columnDefinition = "VARCHAR(255)", nullable = false)
 	private String lemma;
@@ -28,16 +28,16 @@ public class LemmaEntity {
 	private int frequency;
 
 	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "lemmaEntities")
-	private Set<PageEntity> pageEntities = new HashSet<>();
+	private Set<Page> pageEntities = new HashSet<>();
 
 
-	public LemmaEntity(SiteEntity siteEntity, String lemma, int frequency) {
+	public Lemma(Website siteEntity, String lemma, int frequency) {
 		this.siteEntity = siteEntity;
 		this.lemma = lemma;
 		this.frequency = frequency;
 	}
 
-	public LemmaEntity() {
+	public Lemma() {
 	}
 
 

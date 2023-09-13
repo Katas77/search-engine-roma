@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
-@Entity(name = "SiteEntity")
+@Entity(name = "Website")
 @Table(name = "site")
 
-public class SiteEntity {
+public class Website {
 
-	public SiteEntity(Status status, LocalDateTime statusTime, String lastError, String url, String name) {
+	public Website(Status status, LocalDateTime statusTime, String lastError, String url, String name) {
 		this.status = status;
 		this.statusTime = statusTime;
 		this.lastError = lastError;
@@ -19,7 +19,7 @@ public class SiteEntity {
 		this.name = name;
 	}
 
-	public SiteEntity() {
+	public Website() {
 	}
 
 	@Id
@@ -44,8 +44,8 @@ public class SiteEntity {
 	private String name;
 
 	@OneToMany(mappedBy = "siteEntity", cascade = CascadeType.REMOVE)
-	private Set<PageEntity> pageEntities;
+	private Set<Page> pageEntities;
 
 	@OneToMany(mappedBy = "siteEntity", cascade = CascadeType.REMOVE)
-	private Set<LemmaEntity> lemmaEntity;
+	private Set<Lemma> lemmaEntity;
 }

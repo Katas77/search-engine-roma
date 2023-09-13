@@ -9,8 +9,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.model.Page;
+import searchengine.model.Website;
 import searchengine.repositories.PageRepository;
 import java.io.IOException;
 import java.util.*;
@@ -31,20 +31,20 @@ public class RecursiveMake extends RecursiveAction {
 	private String currentUrl;
 	private String parentPath;
 	private Document document;
-	private PageEntity pageEntity;
-	private SiteEntity siteEntity;
+	private Page pageEntity;
+	private Website siteEntity;
 	private Set<String> childLinks;
 	private Connection.Response response = null;
 	private final PageRepository pageRepository;
-	private BlockingQueue<PageEntity> outcomeQueue;
+	private BlockingQueue<Page> outcomeQueue;
 	public static final ArrayList<String> html = new ArrayList<>();
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
 	public static final String urlValid = "^(ht|f)tp(s?)://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(/?)([a-zA-Z0-9\\-.,'=/\\\\+%_]*)?$";
 
 	public RecursiveMake(String currentUrl,
-						 SiteEntity siteEntity,
-						 BlockingQueue<PageEntity> outcomeQueue,  PageRepository pageRepository,  String siteUrl) {
+                         Website siteEntity,
+                         BlockingQueue<Page> outcomeQueue, PageRepository pageRepository, String siteUrl) {
 		this.siteEntity = siteEntity;
 		this.outcomeQueue = outcomeQueue;
 		this.currentUrl = currentUrl;
@@ -66,7 +66,7 @@ public class RecursiveMake extends RecursiveAction {
 			document = response.parse();
 			parentPath = "/" + currentUrl.replace(siteUrl, "");
 			cleanHtmlContent();
-			pageEntity = new PageEntity(siteEntity, response.statusCode(), document.html(), parentPath);
+			pageEntity = new Page(siteEntity, response.statusCode(), document.html(), parentPath);
 		} catch (IOException | UncheckedIOException exception) {
 			System.out.println(exception.getMessage());
 		}

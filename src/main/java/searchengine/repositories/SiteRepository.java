@@ -2,16 +2,16 @@ package searchengine.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import searchengine.model.Website;
 import searchengine.model.Status;
-import searchengine.model.SiteEntity;
 
 
 @Repository
-public interface SiteRepository extends JpaRepository<SiteEntity, Long> {
+public interface SiteRepository extends JpaRepository<Website, Long> {
 
 
 
-	SiteEntity findByUrl(String url);
+	Website findByUrl(String url);
 
 
 	boolean existsByStatus(Status status);

@@ -26,12 +26,17 @@ public class ApiController {
     private final IndexingService indexingService;
     private final StatisticsService statisticsService;
 
+
+
+
     @Autowired
     SiteRepository siteRepository;
 
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
+
+
         return ResponseEntity.ok(statisticsService.getStatistics());
     }
 
@@ -46,7 +51,7 @@ public class ApiController {
     }
 
    @PostMapping("/indexPage")
-    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://upakmarket.com") final String url) {
+    public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://www.playback.ru/product/1124022.html") final String url) {
         return indexingService.indexingPageStart(url);}
 
 

@@ -5,17 +5,17 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import searchengine.model.LemmaEntity;
-import searchengine.model.SiteEntity;
+import searchengine.model.Lemma;
+import searchengine.model.Website;
 
 import java.util.List;
 
 @Transactional
 @Repository
-public interface LemmaRepository extends JpaRepository<LemmaEntity, Long> {
+public interface LemmaRepository extends JpaRepository<Lemma, Long> {
 
-	Integer countBySiteEntity(SiteEntity siteEntity);
+	Integer countBySiteEntity(Website siteEntity);
 
 	@Query(value = "SELECT l.* FROM Lemma l WHERE l.lemma IN :lemmas AND l.site_id = :site", nativeQuery = true)
-	List<LemmaEntity> findLemmasBySite(@Param("lemmas") List<String> lemmas, @Param("site") SiteEntity site);
+	List<Lemma> findLemmasBySite(@Param("lemmas") List<String> lemmas, @Param("site") Website site);
 }

@@ -1,14 +1,14 @@
 package searchengine.model;
 
 import lombok.*;
-import org.hibernate.annotations.Immutable;
+
 import javax.persistence.*;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "search_index")
-public class IndexEntity {
+public class Indexes {
 
 	@Id
 	@Column(nullable = false)
@@ -17,21 +17,21 @@ public class IndexEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(foreignKey = @ForeignKey(name = "FK_index_page_id"), name = "page_id", nullable = false)
-	public PageEntity pageEntity;
+	public Page pageEntity;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(foreignKey = @ForeignKey(name = "FK_index_lemma_id"), name = "lemma_id", nullable = false)
-	public LemmaEntity lemmaEntity;
+	public Lemma lemmaEntity;
 
 	@Column(name = "lemma_rank", nullable = false)
 	private float lemmaRank;
 
-	public IndexEntity(PageEntity pageEntity, LemmaEntity lemmaEntity, float lemmaRank) {
+	public Indexes(Page pageEntity, Lemma lemmaEntity, float lemmaRank) {
 		this.pageEntity = pageEntity;
 		this.lemmaEntity = lemmaEntity;
 		this.lemmaRank = lemmaRank;
 	}
 
-	public IndexEntity() {
+	public Indexes() {
 	}
 }

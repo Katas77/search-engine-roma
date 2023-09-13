@@ -8,17 +8,17 @@ import org.springframework.stereotype.Service;
 
 import searchengine.dto.searh.SearchData;
 import searchengine.dto.searh.SearchResponse;
-import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.model.Indexes;
+import searchengine.model.Lemma;
+import searchengine.model.Page;
+import searchengine.model.Website;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.BadRequest;
 import searchengine.utils.indexing.JsoupConnect;
-import searchengine.utils.searchandLemma.LemmaFinderUtil;
+import searchengine.utils.searchandLemma.LemmaSearchTools;
 
 
 import java.util.*;
@@ -33,7 +33,7 @@ public class SearchServiceImpl implements SearchService {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-    private final LemmaFinderUtil lemmaFinderUtil;
+    private final LemmaSearchTools lemmaFinderUtil;
     private final JsoupConnect jsoupConnects;
 
     @Override
@@ -69,15 +69,15 @@ public class SearchServiceImpl implements SearchService {
     public List<SearchData> searchThroughAllSites(String query, int offset, int limit) {
 
         log.info( "Запускаем поиск по сайтам для запроса: "+ query);
-        List<SiteEntity> sites = siteRepository.findAll();
-        List<LemmaEntity> sortedLemmasPerSite = new ArrayList<>();
+        List<Website> sites = siteRepository.findAll();
+        List<Lemma> sortedLemmasPerSite = new ArrayList<>();
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
 
-        for (SiteEntity siteEntity : sites) {
+        for (Website siteEntity : sites) {
             sortedLemmasPerSite.addAll(getLemmasFromSite(lemmasFromQuery, siteEntity));
         }
         List<SearchData> searchData = null;
-        for (LemmaEntity lemmaEntity : sortedLemmasPerSite) {
+        for (Lemma lemmaEntity : sortedLemmasPerSite) {
             if (lemmaEntity.getLemma().equals(query)) {
                 searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery, offset, limit));
                 searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
@@ -90,9 +90,9 @@ public class SearchServiceImpl implements SearchService {
 
     public List<SearchData> onePageSearch(String query, String url, int offset, int limit) {
         log.info( "Запускаем поиск по сайтам для запроса: "+ query);
-        SiteEntity siteEntity = siteRepository.findByUrl(url);
+        Website siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
-        List<LemmaEntity> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
+        List<Lemma> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
         log.info("Поиск по сайтам завершен.");
         return getSearchDataList(lemmasFromSite, lemmasFromQuery, offset, limit);
     }
@@ -107,39 +107,39 @@ public class SearchServiceImpl implements SearchService {
         return lemmaList;
     }
 
-    private List<LemmaEntity> getLemmasFromSite(List<String> lemmas, SiteEntity site) {
-        ArrayList<LemmaEntity> lemmaList = (ArrayList<LemmaEntity>) lemmaRepository.findLemmasBySite(lemmas, site);
-        lemmaList.sort(Comparator.comparingInt(LemmaEntity::getFrequency));
+    private List<Lemma> getLemmasFromSite(List<String> lemmas, Website site) {
+        ArrayList<Lemma> lemmaList = (ArrayList<Lemma>) lemmaRepository.findLemmasBySite(lemmas, site);
+        lemmaList.sort(Comparator.comparingInt(Lemma::getFrequency));
         return lemmaList;
     }
 
-    private List<SearchData> getSearchDataList(List<LemmaEntity> lemmas, List<String> lemmasFromQuery,
+    private List<SearchData> getSearchDataList(List<Lemma> lemmas, List<String> lemmasFromQuery,
                                                int offset, int limit) {
         List<SearchData> searchDataList = new ArrayList<>();
         if (lemmas.size() >= lemmasFromQuery.size()) {
-            List<PageEntity> sortedPageList = pageRepository.findByLemmas(lemmas);
-            List<IndexEntity> sortedIndexList = indexRepository.findByLemmasAndPages(lemmas, sortedPageList);
-            LinkedHashMap<PageEntity, Float> sortedPagesByAbsRelevance =
+            List<Page> sortedPageList = pageRepository.findByLemmas(lemmas);
+            List<Indexes> sortedIndexList = indexRepository.findByLemmasAndPages(lemmas, sortedPageList);
+            LinkedHashMap<Page, Float> sortedPagesByAbsRelevance =
                     getSortPagesWithAbsRelevance(sortedPageList, sortedIndexList);
            searchDataList = getSearchData(sortedPagesByAbsRelevance, lemmasFromQuery);
 
         }  return searchDataList;
     }
 
-    private LinkedHashMap<PageEntity, Float> getSortPagesWithAbsRelevance(List<PageEntity> pages,
-                                                                          List<IndexEntity> indexes) {
-        HashMap<PageEntity, Float> pageWithRelevance = new HashMap<>();
-        for (PageEntity page : pages) {
+    private LinkedHashMap<Page, Float> getSortPagesWithAbsRelevance(List<Page> pages,
+                                                                    List<Indexes> indexes) {
+        HashMap<Page, Float> pageWithRelevance = new HashMap<>();
+        for (Page page : pages) {
             float relevant = 0;
-            for (IndexEntity index : indexes) {
+            for (Indexes index : indexes) {
                 if (index.getPageEntity().equals(page)) {
                     relevant += index.getLemmaRank();
                 }
             }
             pageWithRelevance.put(page, relevant);
         }
-        HashMap<PageEntity, Float> pagesWithAbsRelevance = new HashMap<>();
-        for (PageEntity page : pageWithRelevance.keySet()) {
+        HashMap<Page, Float> pagesWithAbsRelevance = new HashMap<>();
+        for (Page page : pageWithRelevance.keySet()) {
             float absRelevant = pageWithRelevance.get(page) / Collections.max(pageWithRelevance.values());
             pagesWithAbsRelevance.put(page, absRelevant);
         }
@@ -150,30 +150,30 @@ public class SearchServiceImpl implements SearchService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
-    private List<SearchData> getSearchData(LinkedHashMap<PageEntity, Float> sortedPages,
-                                           List<String> lemmasFromQuey) {
+    private List<SearchData> getSearchData(LinkedHashMap<Page, Float> sortedPages,
+                                           List<String> lemmasFromQuery) {
         List<SearchData> searchData = new ArrayList<>();
 
-        for (PageEntity pageEntity : sortedPages.keySet()) {
+        for (Page pageEntity : sortedPages.keySet()) {
             String uri = pageEntity.getPath();
             String content = pageEntity.getContent();
             String title = jsoupConnects.getTitleFromHtml(content);
-            SiteEntity siteEntity = pageEntity.getSiteEntity();
+            Website siteEntity = pageEntity.getSiteEntity();
             String siteName = siteEntity.getName();
             String site = "https://"+siteName;
             Float absRelevance = sortedPages.get(pageEntity);
             String clearContent = lemmaFinderUtil.removeHtmlTags(content);
-            String snippet = getSnippet(clearContent, lemmasFromQuey);
+            String snippet = getSnippet(clearContent, lemmasFromQuery);
             searchData.add(new SearchData(site, siteName, uri, title, snippet, absRelevance));
         }
         return searchData;
     }
 
 
-    private String getSnippet(String content, List<String> lemmasFromQuey) {
+    private String getSnippet(String content, List<String> lemmasFromQuery) {
         List<Integer> lemmaIndex = new ArrayList<>();
         StringBuilder result = new StringBuilder();
-        for (String lemma : lemmasFromQuey) {
+        for (String lemma : lemmasFromQuery) {
             lemmaIndex.addAll(lemmaFinderUtil.findLemmaIndexInText(content, lemma));
         }
         Collections.sort(lemmaIndex);

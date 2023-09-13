@@ -1,6 +1,7 @@
 package searchengine.utils.searchandLemma;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.morphology.english.EnglishMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +15,14 @@ import java.util.regex.Pattern;
 
 @Component
 @Slf4j
-public class LemmaFinderUtil {
-
+public class LemmaSearchTools {
+private static EnglishMorphology englishMorphology;
+    static {
+        try {
+            englishMorphology = new EnglishMorphology();
+        } catch (IOException e) {
+        }
+    }
 
     private static RussianLuceneMorphology russianLuceneMorphology;
 
@@ -38,6 +45,17 @@ public class LemmaFinderUtil {
             }
         } catch (Exception e) {
         }
+        try {
+            if (!isRussianWord(word)) {
+                List<String> lemmaForms = englishMorphology.getNormalForms(word);
+                    lemmaList.addAll(lemmaForms);
+
+
+            }
+        } catch (Exception e) {
+        }
+
+        System.out.println( lemmaList.size());
         return lemmaList;
     }
 
@@ -57,9 +75,9 @@ public class LemmaFinderUtil {
         return lemmaIndexList;
     }
 
-    private boolean isRussianWord(String word) {
-        String regex = "[а-яА-Я]+";
-        return word.matches(regex) ? true : false;
+    public static boolean isRussianWord(String word) {
+        int length = word.replaceAll("[a-zA-Z0-9]+", "").trim().length();
+        return length != 0 ? true : false;
     }
 
     private boolean isServiceWord(String word) {

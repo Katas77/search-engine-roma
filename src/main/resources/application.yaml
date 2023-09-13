@@ -3,11 +3,11 @@
 indexing-settings:
   sites:
     - url: https://www.skillbox.ru
-      name: skillbox
+      name: Skillbox
     - url: https://www.lenta.ru
       name: lenta.ru
     - url: https://www.playback.ru
-      name: playBack.Ru
+      name: playBack.ru
 server:
   port: 8080
 

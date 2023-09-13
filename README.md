@@ -1,11 +1,9 @@
-<center><font size="6" face="Georgia"> <h1> «Поисковый движок»
-<br/>
-</h1></font>
+<center><font size="3" face="Georgia"> <h3> "Итоговый проект курса "Java-разработчик с нуля"
+</h3></font>
 </center>
-<center><font size="4" face="Georgia"> <h1>
-"Итоговый проект курса "Java-разработчик с нуля" </h1></font>
+<center><font size="6" face="Georgia"> <h3>
+«Поисковый движок» </h3></font>
 </center>
-
 <h2 align="center">
 
 ![image](./image/3.png )</h2>

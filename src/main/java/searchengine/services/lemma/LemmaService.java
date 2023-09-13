@@ -1,18 +1,18 @@
 package searchengine.services.lemma;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
-import searchengine.model.SiteEntity;
+import searchengine.model.Lemma;
+import searchengine.model.Page;
+import searchengine.model.Website;
 
 import java.util.concurrent.BlockingQueue;
 
 public interface LemmaService {
 
-	void setQueue(BlockingQueue<PageEntity> queueOfPagesForLemmasCollecting);
-	void setSiteEntity(SiteEntity siteEntity);
+	void setQueue(BlockingQueue<Page> queueOfPagesForLemmasCollecting);
+	void setSiteEntity(Website siteEntity);
 
 	void startCollecting();
 	void setOffOn(boolean value);
-	LemmaEntity createLemmaEntity(String lemma);
+	Lemma createLemmaEntity(String lemma);
 	Boolean allowed();
 	void setDone(boolean b);
 }

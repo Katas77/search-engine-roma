@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import searchengine.model.Website;
 import searchengine.model.Status;
@@ -18,6 +19,7 @@ import searchengine.services.indexing.IndexingServiceImpl;
 import searchengine.services.lemma.LemmaService;
 
 import java.time.LocalDateTime;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -37,22 +39,18 @@ public class IndexingTools {
     private final LemmaService lemmaService;
     private ForkJoinPool joinPool = new ForkJoinPool(CORE_COUNT);
 
-
-
-    public synchronized void startTreadsIndexing(Website siteEntity) {
+    public void startTreadsIndexing(Website siteEntity) {
         log.warn("Full indexing will be started now");
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
-        Thread recursivThread = new Thread(() -> RecursiveThreadBody(joinPool, siteEntity, latch));
-        Thread lemmasCollectorThread = new Thread(() -> lemmasThreadBody(siteEntity, latch));
-        recursivThread.start();
-        lemmasCollectorThread.start();
+        RecursiveThreadBody(joinPool, siteEntity, latch);
+        lemmasThreadBody(siteEntity, latch);
         try {
-           latch.await();
-
+            latch.await();
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }
+        joinPool.shutdownNow();
         updateEntity(siteEntity);
     }
 
@@ -61,21 +59,26 @@ public class IndexingTools {
         lemmaService.setQueue(blockingQueue);
         lemmaService.setDone(false);
         lemmaService.setSiteEntity(siteEntity);
-        lemmaService.startCollecting();
+        try {
+            lemmaService.startCollecting();
+        } catch (DataIntegrityViolationException | ConcurrentModificationException exception) {
+        }
         latch.countDown();
         log.warn("thread finished, latch =  " + latch.getCount());
-
-
     }
 
     private void RecursiveThreadBody(@NotNull ForkJoinPool pool, Website siteEntity, CountDownLatch latch) {
-        RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
-        pool.invoke(action);
-        latch.countDown();
+        try {
+            RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
+            pool.invoke(action);
+        } catch (NullPointerException ignored) {
+        } catch (ConcurrentModificationException | RejectedExecutionException e) {
+            e.getMessage();
+        }
         lemmaService.setDone(true);
+        latch.countDown();
         log.info(pageRepository.countBySiteEntity(siteEntity) + " pages saved in DB-");
         log.warn("thread finished, latch =  " + latch.getCount());
-
     }
 
 
@@ -108,17 +111,16 @@ public class IndexingTools {
                 siteEntity.setLastError("Ошибка индексации: сайт не доступен");
             }
         }
-            log.warn("Status of site " + siteEntity.getName()
-                    + " set to " + siteEntity.getStatus().toString()
-                    + ", error set to " + siteEntity.getLastError());
-        if (countPages==1 & siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl)) {
+        log.warn("Status of site " + siteEntity.getName()
+                + " set to " + siteEntity.getStatus().toString()
+                + ", error set to " + siteEntity.getLastError());
+        if (countPages == 1 & siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl)) {
             siteEntity.setStatus(Status.INDEXED);
-            siteEntity.setLastError("");}
-
+            siteEntity.setLastError("");
+        }
         siteRepository.save(siteEntity);
         StringPool.clearAll();
     }
-
 
     private void logInfo(Website siteEntity) {
         log.info(siteEntity.getName() + " with URL " + siteEntity.getUrl() + " started indexing");
@@ -131,8 +133,9 @@ public class IndexingTools {
     public void stopUpdate() {
         List<Website> siteEntities = siteRepository.findAll();
         for (Website siteEntity : siteEntities) {
-            if (siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl))
-            {continue;}
+            if (siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl) | isIndexing()) {
+                continue;
+            }
             int countPages = pageRepository.countBySiteEntity(siteEntity);
             if (countPages > 1) {
                 siteEntity.setLastError("Индексация остановлена пользователем");
@@ -152,9 +155,12 @@ public class IndexingTools {
         }
         List<Page> pages = pageRepository.findAll();
 
-        }
-
-
     }
+
+    private boolean isIndexing() {
+        return siteRepository.existsByStatus(Status.INDEXED);
+    }
+
+}
 
 

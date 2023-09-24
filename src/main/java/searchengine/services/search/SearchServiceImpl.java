@@ -59,7 +59,10 @@ public class SearchServiceImpl implements SearchService {
         {
 
             System.out.println("'"+query+"'"+" - найдено:");
-            System.out.println("https://"+data.getSiteName()+data.getUri());
+            if (data.getSiteName().equals("playBack.ru"))
+            {System.out.println("https://"+data.getSiteName()+data.getUri());}
+            else
+            System.out.println(data.getUri());
         }
         return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
 
@@ -155,12 +158,16 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData = new ArrayList<>();
 
         for (Page pageEntity : sortedPages.keySet()) {
-            String uri = pageEntity.getPath();
+            String uri = pageEntity.getPath().substring(1);
             String content = pageEntity.getContent();
             String title = jsoupConnects.getTitleFromHtml(content);
             Website siteEntity = pageEntity.getSiteEntity();
             String siteName = siteEntity.getName();
-            String site = "https://"+siteName;
+            String site = "";
+            if (siteName.equals("playBack.ru")) {
+                site = "https://" + siteName;
+                uri = pageEntity.getPath();
+            }
             Float absRelevance = sortedPages.get(pageEntity);
             String clearContent = lemmaFinderUtil.removeHtmlTags(content);
             String snippet = getSnippet(clearContent, lemmasFromQuery);

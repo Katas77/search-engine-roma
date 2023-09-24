@@ -29,15 +29,14 @@ public class IndexingServiceImpl implements IndexingService {
     private final IndexingTools tools;
     public final SiteRepository siteRepository;
     private final SitesList sitesList;
-    public static String oneUrl="";
-
+    public static String oneUrl = "";
 
 
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.warn("--метод startIndexing запущен--");
         List<Thread> threadList = new ArrayList<>();
-        List<Website> websiteList= inRepository.listSitesEntity();
+        List<Website> websiteList = inRepository.listSitesEntity();
         websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity))));
         threadList.forEach(Thread::start);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
@@ -50,7 +49,7 @@ public class IndexingServiceImpl implements IndexingService {
             return new ResponseEntity<>(new BadRequest(false, "Унифицированный указатель ресурса пустой, или невозможно определить определитель местонахождения запрашиваемого  ресурса"),
                     HttpStatus.BAD_REQUEST);
         if (isConfigurations(url)) {
-               oneUrl=url;
+            oneUrl = url;
             return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
         } else
             return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),

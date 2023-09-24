@@ -16,7 +16,8 @@ import java.util.regex.Pattern;
 @Component
 @Slf4j
 public class LemmaSearchTools {
-private static EnglishMorphology englishMorphology;
+    private static EnglishMorphology englishMorphology;
+
     static {
         try {
             englishMorphology = new EnglishMorphology();
@@ -48,14 +49,13 @@ private static EnglishMorphology englishMorphology;
         try {
             if (!isRussianWord(word)) {
                 List<String> lemmaForms = englishMorphology.getNormalForms(word);
-                    lemmaList.addAll(lemmaForms);
+                lemmaList.addAll(lemmaForms);
 
 
             }
         } catch (Exception e) {
         }
 
-        System.out.println( lemmaList.size());
         return lemmaList;
     }
 

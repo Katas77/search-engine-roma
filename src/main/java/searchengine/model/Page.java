@@ -32,13 +32,16 @@ public class Page {
 	@OnDelete(action = OnDeleteAction.NO_ACTION)
 	@JoinColumn(foreignKey = @ForeignKey(name = "site_page_FK"), columnDefinition = "Integer",
 			referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
+
 	private Website siteEntity;
 	@NotNull
 	@Column(name = "path", columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
+
 	private String path;
 
 	@Column(nullable = false)
 	private int code;
+
 	@NotNull
 	@Column(length = 4000, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
 	private String content;

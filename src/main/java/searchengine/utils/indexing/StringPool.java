@@ -22,20 +22,14 @@ public class StringPool {
         pages404 = new ConcurrentHashMap<>(100);
     }
 
-    public static String internVisitedLinks(String s) {
+    public static void internVisitedLinks(String s) {
         String exist = links.putIfAbsent(s, s);
-        return (exist == null) ? s : exist;
     }
 
-    public static String internSavedPath(String s) {
+    public static void internSavedPath(String s) {
         String exist = savedPaths.putIfAbsent(s, s);
-        return (exist == null) ? s : exist;
     }
 
-    public static String internPage404(String s) {
-        String exist = pages404.putIfAbsent(s, s);
-        return (exist == null) ? s : exist;
-    }
 
     public static void clearAll() {
         savedPaths.clear();

@@ -14,8 +14,6 @@ import java.util.*;
 @Slf4j
 @Component
 public class LemmaFinder {
-
-
     private static final String[] PARTICLES_NAMES = {"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
     private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
     private final LuceneMorphology luceneMorphology2 = new EnglishLuceneMorphology();
@@ -26,8 +24,6 @@ public class LemmaFinder {
     public Map<String, Integer> collectLemmas(String text) {
         String[] words = arrayContainsRussianWords(text);
         HashMap<String, Integer> lemmas = new HashMap<>();
-
-
         for (String word : words) {
             if (word.isBlank() | ((word.length() == 1) && (!word.toLowerCase(Locale.ROOT).equals("я")))) {
                 continue;
@@ -55,13 +51,10 @@ public class LemmaFinder {
     public Map<String, Integer> collectLemmasEnglish(String text) {
         String[] words = arrayContainsEnglishWords(text);
         HashMap<String, Integer> lemmas = new HashMap<>();
-
         for (String word : words) {
             if (word.isBlank() | ((word.length() == 1))) {
                 continue;
             }
-
-
             List<String> normalForms = luceneMorphology2.getNormalForms(word);
             if (normalForms.isEmpty()) {
                 continue;

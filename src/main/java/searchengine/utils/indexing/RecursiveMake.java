@@ -130,8 +130,6 @@ public class RecursiveMake extends RecursiveAction {
         lock.readLock().lock();
         if (!savedPaths.containsKey(parentPath)) {
             try {
-
-
                 pageRepository.save(pageEntity);
                 internSavedPath(pageEntity.getPath());
                 putPageEntityToQueue();
@@ -145,7 +143,6 @@ public class RecursiveMake extends RecursiveAction {
     private void forkAndJoinTasks() {
         if (!isActive)
             return;
-
         List<RecursiveMake> subTasks = new LinkedList<>();
         for (String childLink : childLinks) {
             if (childIsValidToFork(childLink)
@@ -165,7 +162,6 @@ public class RecursiveMake extends RecursiveAction {
     }
 
     private boolean childIsValidToFork(String subLink) {
-
         final String ext = subLink.substring(subLink.length() - 4);
         html.add("html");
         html.add("dhtml");

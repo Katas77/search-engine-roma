@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import searchengine.config.SitesList;
 import searchengine.model.*;
@@ -58,7 +57,7 @@ public class WebsiteSaveInRepository {
         return siteEntity;
     }
 
-    public Website oneSiteEntity(String site) {
+    public void oneSiteEntity(String site) {
         Website siteEntity = new Website();
         siteEntity.setStatus(Status.INDEXING);
         siteEntity.setStatusTime(LocalDateTime.now());
@@ -67,7 +66,6 @@ public class WebsiteSaveInRepository {
         String[] nameArr = site.replace("https://", "").split("/");
         siteEntity.setName(nameArr[0]);
         siteRepository.save(siteEntity);
-        return siteEntity;
     }
 
 

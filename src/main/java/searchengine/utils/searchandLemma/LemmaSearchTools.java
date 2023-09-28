@@ -21,7 +21,7 @@ public class LemmaSearchTools {
     static {
         try {
             englishMorphology = new EnglishMorphology();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 
@@ -30,7 +30,7 @@ public class LemmaSearchTools {
     static {
         try {
             russianLuceneMorphology = new RussianLuceneMorphology();
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 
@@ -44,7 +44,7 @@ public class LemmaSearchTools {
                     lemmaList.addAll(lemmaForms);
                 }
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
         try {
             if (!isRussianWord(word)) {
@@ -53,7 +53,7 @@ public class LemmaSearchTools {
 
 
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
 
         return lemmaList;

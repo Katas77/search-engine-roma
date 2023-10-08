@@ -29,7 +29,6 @@ public class WebsiteSaveInRepository {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
 
-
     public List<Website> listSitesEntity() {
         indexRepository.deleteAllInBatch();
         lemmaRepository.deleteAllInBatch();

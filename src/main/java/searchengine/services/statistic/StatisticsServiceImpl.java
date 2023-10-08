@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-    String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
+    String[] statuses = {"INDEXED", "FAILED", "INDEXING"};
     String[] errors = {
             "Ошибка индексации: главная страница сайта не доступна",
             "Ошибка индексации: сайт не доступен",
@@ -42,17 +42,19 @@ public class StatisticsServiceImpl implements StatisticsService {
         return response;
 
     }
+
     private TotalStatistics getTotal() {
         long sites = siteRepository.count();
-        if (siteRepository.count()==0)
-        {sites= this.sites.getSites().size();}
+        if (siteRepository.count() == 0) {
+            sites = this.sites.getSites().size();
+        }
         long pages = pageRepository.count();
         long lemmas = lemmaRepository.count();
         return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);
     }
 
     private DetailedStatisticsItem getDetailed(Website site) {
-        String url = "https://www."+site.getName();
+        String url = "https://www." + site.getName();
         String name = site.getName();
         String status = site.getStatus().toString();
         LocalDateTime statusTime = site.getStatusTime();

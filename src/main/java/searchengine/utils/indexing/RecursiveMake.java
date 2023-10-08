@@ -178,7 +178,7 @@ public class RecursiveMake extends RecursiveAction {
         try {
             while (true) {
                 if (outcomeQueue.remainingCapacity() < 5 && isActive)
-                    sleep(5_000);
+                    sleep(50);
                 else
                     break;
             }

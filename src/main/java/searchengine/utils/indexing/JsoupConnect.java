@@ -12,15 +12,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JsoupConnect {
 
-public Connection.Response Connect (String url){
-    Connection.Response response=null;
-    try {
-        response  = Jsoup.connect(url).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
-                .referrer("http://www.google.com").execute();
-    } catch (Exception exception) {
-        System.out.println(exception.getMessage());
+    public Connection.Response Connect(String url) {
+        Connection.Response response = null;
+        try {
+            response = Jsoup.connect(url).userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+                    .referrer("http://www.google.com").execute();
+        } catch (Exception exception) {
+            System.out.println(exception.getMessage());
+        }
+        return response;
     }
-return response;}
 
     public String getTitleFromHtml(String content) {
         Document doc = Jsoup.parse(content);

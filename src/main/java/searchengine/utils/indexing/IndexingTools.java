@@ -1,4 +1,5 @@
 package searchengine.utils.indexing;
+
 import com.sun.istack.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class IndexingTools {
     private ExecutorService executorService;
+    private boolean update = true;
     private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
     private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(1_00);
     private final PageRepository pageRepository;
@@ -41,19 +43,24 @@ public class IndexingTools {
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
         RecursiveThreadBody(joinPool, siteEntity, latch);
+        Thread thread = new Thread(() -> indexed(siteEntity));
+        thread.start();
+        lemmasThreadBody(siteEntity, latch);
         try {
             latch.await();
         } catch (InterruptedException e) {
             System.out.println(e.getMessage());
         }
         joinPool.shutdownNow();
-        updateEntity(siteEntity);
+        if (update) {
+            updateEntity(siteEntity);
+        }
     }
 
 
     private void lemmasThreadBody(Website siteEntity, CountDownLatch latch) {
         lemmaService.setQueue(blockingQueue);
-        lemmaService.setDone(false);
+        lemmaService.setCycle(false);
         lemmaService.setSiteEntity(siteEntity);
         try {
             lemmaService.startCollecting();
@@ -69,15 +76,14 @@ public class IndexingTools {
             pool.invoke(action);
         } catch (NullPointerException | ConcurrentModificationException | RejectedExecutionException ignored) {
         }
-        Thread thread=new Thread(()->lemmasThreadBody(siteEntity, latch));
-        thread.start();
-        lemmaService.setDone(true);
+        lemmaService.setCycle(true);
         latch.countDown();
         log.info(pageRepository.countBySiteEntity(siteEntity) + " pages saved in DB-");
         log.warn("thread finished, latch =  " + latch.getCount());
     }
 
     public void setIsActive(boolean value) {
+        update = false;
         stopUpdate();
         try {
             log.warn("---остановлено пользователем----");
@@ -123,6 +129,10 @@ public class IndexingTools {
                 continue;
             }
             int countPages = pageRepository.countBySiteEntity(siteEntity);
+            if (countPages > 1) {
+                siteEntity.setLastError("Индексация остановлена пользователем");
+                siteEntity.setStatus(Status.FAILED);
+            }
             setStatus(countPages, siteEntity);
             siteRepository.save(siteEntity);
         }
@@ -130,10 +140,6 @@ public class IndexingTools {
     }
 
     private void setStatus(int countPages, Website siteEntity) {
-        if (countPages > 1) {
-            siteEntity.setLastError("Индексация остановлена пользователем");
-            siteEntity.setStatus(Status.FAILED);
-        }
         switch (countPages) {
             case 0 -> {
                 siteEntity.setStatus(Status.FAILED);
@@ -142,6 +148,33 @@ public class IndexingTools {
             case 1 -> {
                 siteEntity.setStatus(Status.FAILED);
                 siteEntity.setLastError("Ошибка индексации: сайт не доступен");
+            }
+        }
+    }
+
+    private void indexed(Website siteEntity) {
+        while (true) {
+            try {
+                Thread.sleep(3_000);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+            if (!update) {
+                return;
+            }
+            int countPages1 = pageRepository.countBySiteEntity(siteEntity);
+            try {
+                Thread.sleep(7_000);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+            int countPages2 = pageRepository.countBySiteEntity(siteEntity);
+            if (countPages1 == countPages2) {
+                joinPool.shutdownNow();
+                RecursiveMake.isActive = false;
+                lemmaService.setOffOn(false);
+                updateEntity(siteEntity);
+                return;
             }
         }
     }

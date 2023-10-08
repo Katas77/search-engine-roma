@@ -27,16 +27,12 @@ public class ApiController {
     private final StatisticsService statisticsService;
 
 
-
-
     @Autowired
     SiteRepository siteRepository;
 
 
     @GetMapping("/statistics")
     public ResponseEntity<StatisticsResponse> statistics() {
-
-
         return ResponseEntity.ok(statisticsService.getStatistics());
     }
 
@@ -50,9 +46,10 @@ public class ApiController {
         return indexingService.indexingStart();
     }
 
-   @PostMapping("/indexPage")
+    @PostMapping("/indexPage")
     public ResponseEntity<Object> indexPage(@RequestParam(defaultValue = "https://www.playback.ru/product/1124022.html") final String url) {
-        return indexingService.indexingPageStart(url);}
+        return indexingService.indexingPageStart(url);
+    }
 
 
     @GetMapping("/stopIndexing")
@@ -64,11 +61,10 @@ public class ApiController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Object> search(@RequestParam(required = false,defaultValue = "смартфон") String query,
+    public ResponseEntity<Object> search(@RequestParam(required = false, defaultValue = "смартфон") String query,
                                          @RequestParam(required = false, defaultValue = "") String site,
                                          @RequestParam(required = false) int offset,
-                                         @RequestParam(required = false,defaultValue = "500") int limit)
-    {
+                                         @RequestParam(required = false, defaultValue = "500") int limit) {
 
         return searchService.search(query, site, offset, limit);
     }
@@ -76,9 +72,6 @@ public class ApiController {
     private boolean isIndexing() {
         return siteRepository.existsByStatus(Status.INDEXING);
     }
-
-
-
 
 
 }

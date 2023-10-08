@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,44 +15,44 @@ import java.util.Set;
 @Entity
 @Table(name = "page", indexes = @Index(name = "path_siteId_index", columnList = "path, site_id", unique = true))
 public class Page {
-	public Page() {
-	}
-	public Page(Website siteEntity, int code, String content, String path) {
-		this.siteEntity = siteEntity;
-		this.path = path;
-		this.code = code;
-		this.content = content;
-	}
+    public Page() {
+    }
 
-	@Id
-	@Column(name = "id", nullable = false)
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+    public Page(Website siteEntity, int code, String content, String path) {
+        this.siteEntity = siteEntity;
+        this.path = path;
+        this.code = code;
+        this.content = content;
+    }
 
-	@ManyToOne(fetch = FetchType.LAZY, targetEntity = Website.class, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
-	@OnDelete(action = OnDeleteAction.NO_ACTION)
-	@JoinColumn(foreignKey = @ForeignKey(name = "site_page_FK"), columnDefinition = "Integer",
-			referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
+    @Id
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-	private Website siteEntity;
-	@NotNull
-	@Column(name = "path", columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Website.class, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    @JoinColumn(foreignKey = @ForeignKey(name = "site_page_FK"), columnDefinition = "Integer",
+            referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
+    private Website siteEntity;
 
-	private String path;
+    @NotNull
+    @Column(name = "path", columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
+    private String path;
 
-	@Column(nullable = false)
-	private int code;
+    @Column(nullable = false)
+    private int code;
 
-	@NotNull
-	@Column(length = 4000, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
-	private String content;
+    @NotNull
+    @Column(length = 4000, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
+    private String content;
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(
-			name = "search_index",
-			joinColumns = {@JoinColumn(name = "page_id")},
-			inverseJoinColumns = {@JoinColumn(name = "lemma_id")})
-	private Set<Lemma> lemmaEntities = new HashSet<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "search_index",
+            joinColumns = {@JoinColumn(name = "page_id")},
+            inverseJoinColumns = {@JoinColumn(name = "lemma_id")})
+    private Set<Lemma> lemmaEntities = new HashSet<>();
 
 
 }

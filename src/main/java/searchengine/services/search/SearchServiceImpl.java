@@ -55,23 +55,21 @@ public class SearchServiceImpl implements SearchService {
             searchData = new ArrayList<>();
             return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
         }
-        for (SearchData data:searchData)
-        {
+        for (SearchData data : searchData) {
 
-            System.out.println("'"+query+"'"+" - найдено:");
-            if (data.getSiteName().equals("playBack.ru"))
-            {System.out.println("https://"+data.getSiteName()+data.getUri());}
-            else
-            System.out.println(data.getUri());
+            System.out.println("'" + query + "'" + " - найдено:");
+            if (data.getSiteName().equals("playBack.ru")) {
+                System.out.println("https://" + data.getSiteName() + data.getUri());
+            } else
+                System.out.println(data.getUri());
         }
         return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
-
     }
 
 
     public List<SearchData> searchThroughAllSites(String query, int offset, int limit) {
 
-        log.info( "Запускаем поиск по сайтам для запроса: "+ query);
+        log.info("Запускаем поиск по сайтам для запроса: " + query);
         List<Website> sites = siteRepository.findAll();
         List<Lemma> sortedLemmasPerSite = new ArrayList<>();
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
@@ -92,7 +90,7 @@ public class SearchServiceImpl implements SearchService {
 
 
     public List<SearchData> onePageSearch(String query, String url, int offset, int limit) {
-        log.info( "Запускаем поиск по сайтам для запроса: "+ query);
+        log.info("Запускаем поиск по сайтам для запроса: " + query);
         Website siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
         List<Lemma> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
@@ -124,9 +122,10 @@ public class SearchServiceImpl implements SearchService {
             List<Indexes> sortedIndexList = indexRepository.findByLemmasAndPages(lemmas, sortedPageList);
             LinkedHashMap<Page, Float> sortedPagesByAbsRelevance =
                     getSortPagesWithAbsRelevance(sortedPageList, sortedIndexList);
-           searchDataList = getSearchData(sortedPagesByAbsRelevance, lemmasFromQuery);
+            searchDataList = getSearchData(sortedPagesByAbsRelevance, lemmasFromQuery);
 
-        }  return searchDataList;
+        }
+        return searchDataList;
     }
 
     private LinkedHashMap<Page, Float> getSortPagesWithAbsRelevance(List<Page> pages,

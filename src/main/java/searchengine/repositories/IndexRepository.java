@@ -15,8 +15,8 @@ import java.util.List;
 @Repository
 public interface IndexRepository extends JpaRepository<Indexes, Long> {
 
-	@Query(value = "SELECT i.* FROM search_index i WHERE i.lemma_id IN :lemmas AND i.page_id IN :pages",
-			nativeQuery = true)
-	List<Indexes> findByLemmasAndPages(@Param("lemmas") List<Lemma> lemmas,
-									   @Param("pages") List<Page> pageg);
+    @Query(value = "SELECT i.* FROM search_index i WHERE i.lemma_id IN :lemmas AND i.page_id IN :pages",
+            nativeQuery = true)
+    List<Indexes> findByLemmasAndPages(@Param("lemmas") List<Lemma> lemmas,
+                                       @Param("pages") List<Page> pageg);
 }

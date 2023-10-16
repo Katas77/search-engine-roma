@@ -10,7 +10,7 @@ indexing-settings:
       name: lenta.ru
 
 server:
-  port: 8080
+  port: 8081
 
 spring:
   datasource:

@@ -34,7 +34,6 @@ public class LemmaSearchTools {
         }
     }
 
-
     public List<String> getLemma(String word) {
         List<String> lemmaList = new ArrayList<>();
         try {
@@ -50,12 +49,9 @@ public class LemmaSearchTools {
             if (!isRussianWord(word)) {
                 List<String> lemmaForms = englishMorphology.getNormalForms(word);
                 lemmaList.addAll(lemmaForms);
-
-
             }
         } catch (Exception ignored) {
         }
-
         return lemmaList;
     }
 
@@ -101,5 +97,4 @@ public class LemmaSearchTools {
         String plainText = matcher.replaceAll("");
         return plainText;
     }
-
 }

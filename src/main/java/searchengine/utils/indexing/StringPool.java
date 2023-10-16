@@ -15,7 +15,6 @@ public class StringPool {
     public static Map<String, String> savedPaths = null;
     public static Map<String, String> pages404;
 
-
     public StringPool() {
         savedPaths = new ConcurrentHashMap<>(3000);
         links = new ConcurrentHashMap<>(5000);
@@ -30,11 +29,9 @@ public class StringPool {
         String exist = savedPaths.putIfAbsent(s, s);
     }
 
-
     public static void clearAll() {
         savedPaths.clear();
         links.clear();
         pages404.clear();
     }
-
 }

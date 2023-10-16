@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SearchServiceImpl implements SearchService {
-
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
@@ -46,29 +45,27 @@ public class SearchServiceImpl implements SearchService {
                         "указанных в конфигурационном файле"),
                         HttpStatus.BAD_REQUEST);
             } else {
-                searchData = onePageSearch(query, url, offset, limit);
+                searchData = onePageSearch(query, url);
             }
         } else {
-            searchData = searchThroughAllSites(query, offset, limit);
+            searchData = searchThroughAllSites(query);
         }
         if (query == null || query.isEmpty() || searchData == null) {
             searchData = new ArrayList<>();
             return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
         }
         for (SearchData data : searchData) {
-
             System.out.println("'" + query + "'" + " - найдено:");
             if (data.getSiteName().equals("playBack.ru")) {
                 System.out.println("https://" + data.getSiteName() + data.getUri());
             } else
                 System.out.println(data.getUri());
         }
-        return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchData), HttpStatus.OK);
+        return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)), HttpStatus.OK);
     }
 
 
-    public List<SearchData> searchThroughAllSites(String query, int offset, int limit) {
-
+    public List<SearchData> searchThroughAllSites(String query) {
         log.info("Запускаем поиск по сайтам для запроса: " + query);
         List<Website> sites = siteRepository.findAll();
         List<Lemma> sortedLemmasPerSite = new ArrayList<>();
@@ -80,7 +77,7 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData = null;
         for (Lemma lemmaEntity : sortedLemmasPerSite) {
             if (lemmaEntity.getLemma().equals(query)) {
-                searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery, offset, limit));
+                searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery));
                 searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
             }
         }
@@ -89,13 +86,13 @@ public class SearchServiceImpl implements SearchService {
     }
 
 
-    public List<SearchData> onePageSearch(String query, String url, int offset, int limit) {
+    public List<SearchData> onePageSearch(String query, String url) {
         log.info("Запускаем поиск по сайтам для запроса: " + query);
         Website siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
         List<Lemma> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
         log.info("Поиск по сайтам завершен.");
-        return getSearchDataList(lemmasFromSite, lemmasFromQuery, offset, limit);
+        return getSearchDataList(lemmasFromSite, lemmasFromQuery);
     }
 
     private List<String> getQueryIntoLemma(String query) {
@@ -114,8 +111,7 @@ public class SearchServiceImpl implements SearchService {
         return lemmaList;
     }
 
-    private List<SearchData> getSearchDataList(List<Lemma> lemmas, List<String> lemmasFromQuery,
-                                               int offset, int limit) {
+    private List<SearchData> getSearchDataList(List<Lemma> lemmas, List<String> lemmasFromQuery) {
         List<SearchData> searchDataList = new ArrayList<>();
         if (lemmas.size() >= lemmasFromQuery.size()) {
             List<Page> sortedPageList = pageRepository.findByLemmas(lemmas);
@@ -128,8 +124,7 @@ public class SearchServiceImpl implements SearchService {
         return searchDataList;
     }
 
-    private LinkedHashMap<Page, Float> getSortPagesWithAbsRelevance(List<Page> pages,
-                                                                    List<Indexes> indexes) {
+    private LinkedHashMap<Page, Float> getSortPagesWithAbsRelevance(List<Page> pages, List<Indexes> indexes) {
         HashMap<Page, Float> pageWithRelevance = new HashMap<>();
         for (Page page : pages) {
             float relevant = 0;
@@ -155,7 +150,6 @@ public class SearchServiceImpl implements SearchService {
     private List<SearchData> getSearchData(LinkedHashMap<Page, Float> sortedPages,
                                            List<String> lemmasFromQuery) {
         List<SearchData> searchData = new ArrayList<>();
-
         for (Page pageEntity : sortedPages.keySet()) {
             String uri = pageEntity.getPath().substring(1);
             String content = pageEntity.getContent();
@@ -230,5 +224,11 @@ public class SearchServiceImpl implements SearchService {
         return text;
     }
 
-
+    private List<SearchData> searchDataOffset(List<SearchData> searchData, int offset, int limit) {
+        int a = limit + offset;
+        if (a > searchData.size()) {
+            a = searchData.size();
+        }
+        return searchData.subList(offset, a);
+    }
 }

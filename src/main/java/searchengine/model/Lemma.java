@@ -6,11 +6,13 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+@Setter
+@Getter
 @Entity
 @AllArgsConstructor
 @Table(name = "lemma", indexes = @Index(name = "lemma_index", columnList = "lemma, site_id, id", unique = true))
 public class Lemma {
+
 
     @Id
     @Column(nullable = false)

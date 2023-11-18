@@ -6,6 +6,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
@@ -85,7 +87,11 @@ public class LemmasServiceImpl implements LemmaService {
 
     private void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        indexRepository.saveAll(indexEntities);
+        try {
+
+        indexRepository.saveAll(indexEntities);}
+        catch (InvalidDataAccessApiUsageException exception)
+        {exception.getMessage();}
         sleeping(50, " sleeping after saving lemmas");
         log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
         indexEntities.clear();
@@ -93,7 +99,10 @@ public class LemmasServiceImpl implements LemmaService {
 
     private void savingLemmas() {
         long lemmaSave = System.currentTimeMillis();
-        lemmaRepository.saveAll(lemmaEntities.values());
+        try {
+            lemmaRepository.saveAll(lemmaEntities.values());
+        }catch (JpaSystemException exception)
+        { exception.getMessage();}
         sleeping(50, "Error sleeping after saving lemmas");
         log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
         lemmaEntities.clear();

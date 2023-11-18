@@ -165,7 +165,7 @@ public class IndexingTools {
             }
             int countPages1 = pageRepository.countBySiteEntity(siteEntity);
             try {
-                Thread.sleep(7_000);
+                Thread.sleep(9_000);
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
             }

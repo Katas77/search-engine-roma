@@ -6,7 +6,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import searchengine.model.*;
@@ -15,6 +15,8 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.utils.searchandLemma.LemmaFinder;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -54,8 +56,10 @@ public class LemmasServiceImpl implements LemmaService {
             if (pageEntity != null & countPag != 0) {
                 collectedLemmas = lemmaFinder.collectLemmas
                         (Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
-
                 for (String lemma : collectedLemmas.keySet()) {
+                    if (collectedLemmas.get(lemma) == null) {
+                        continue;
+                    }
                     int rank = collectedLemmas.get(lemma);
                     Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
                     indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
@@ -87,11 +91,7 @@ public class LemmasServiceImpl implements LemmaService {
 
     private void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        try {
-
-        indexRepository.saveAll(indexEntities);}
-        catch (InvalidDataAccessApiUsageException exception)
-        {exception.getMessage();}
+        indexRepository.saveAll(indexEntities);
         sleeping(50, " sleeping after saving lemmas");
         log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
         indexEntities.clear();
@@ -101,8 +101,24 @@ public class LemmasServiceImpl implements LemmaService {
         long lemmaSave = System.currentTimeMillis();
         try {
             lemmaRepository.saveAll(lemmaEntities.values());
-        }catch (JpaSystemException exception)
-        { exception.getMessage();}
+
+        } catch (JpaSystemException exception) {
+            System.out.println("JpaSystemException - "+exception.getMessage());
+            List<String> lemmasL = new ArrayList<>();
+            StringBuilder lemmaB = new StringBuilder();
+            for (Map.Entry<String, Lemma> entry : lemmaEntities.entrySet()) {
+                lemmaB.append(entry.getValue().getId() + " - " + entry.getValue().getLemma() + " - " + entry.getValue().getFrequency() + " - " + entry.getValue().getSiteEntity().toString() + " - ");
+                lemmasL.add(String.valueOf(lemmaB));
+                lemmaB = new StringBuilder();
+            }
+            try {
+                Files.write(Paths.get("data/lemma.txt"), lemmasL);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+
         sleeping(50, "Error sleeping after saving lemmas");
         log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
         lemmaEntities.clear();

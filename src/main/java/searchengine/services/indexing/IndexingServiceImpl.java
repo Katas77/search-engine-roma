@@ -37,7 +37,7 @@ public class IndexingServiceImpl implements IndexingService {
         log.warn("--метод startIndexing запущен--");
         List<Thread> threadList = new ArrayList<>();
         List<Website> websiteList = inRepository.listSitesEntity();
-        websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity))));
+        websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity),"Thread - "+siteEntity.getName())));
         threadList.forEach(Thread::start);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }

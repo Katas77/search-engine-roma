@@ -4,6 +4,6 @@ import lombok.Value;
 
 @Value
 public class BadRequest {
-    boolean result;
+    private int statusCode;
     String BadRequestText;
 }

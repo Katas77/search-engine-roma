@@ -5,7 +5,6 @@ import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.english.EnglishLuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,8 +14,8 @@ import java.util.*;
 @Component
 public class LemmaFinder {
     private static final String[] PARTICLES_NAMES = {"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
-    private final LuceneMorphology luceneMorphology = new RussianLuceneMorphology();
-    private final LuceneMorphology luceneMorphology2 = new EnglishLuceneMorphology();
+    private final LuceneMorphology luceneMorphologyRu = new RussianLuceneMorphology();
+    private final LuceneMorphology luceneMorphologyEn = new EnglishLuceneMorphology();
 
     public LemmaFinder() throws IOException {
     }
@@ -28,11 +27,11 @@ public class LemmaFinder {
             if (word.isBlank() | ((word.length() == 1) && (!word.toLowerCase(Locale.ROOT).equals("я")))) {
                 continue;
             }
-            List<String> wordBaseForms = luceneMorphology.getMorphInfo(word);
+            List<String> wordBaseForms = luceneMorphologyRu.getMorphInfo(word);
             if (anyWordBaseBelongToParticle(wordBaseForms)) {
                 continue;
             }
-            List<String> normalForms = luceneMorphology.getNormalForms(word);
+            List<String> normalForms = luceneMorphologyRu.getNormalForms(word);
             if (normalForms.isEmpty()) {
                 continue;
             }
@@ -55,7 +54,7 @@ public class LemmaFinder {
             if (word.isBlank() | ((word.length() == 1))) {
                 continue;
             }
-            List<String> normalForms = luceneMorphology2.getNormalForms(word);
+            List<String> normalForms = luceneMorphologyEn.getNormalForms(word);
             if (normalForms.isEmpty()) {
                 continue;
             }

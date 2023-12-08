@@ -46,13 +46,13 @@ public class IndexingServiceImpl implements IndexingService {
     public ResponseEntity<Object> indexingPageStart(String url) {
         log.warn("--метод indexingPageStart запущен--");
         if (url == null || url.equals("") || checkUrl(url))
-            return new ResponseEntity<>(new BadRequest(false, "Унифицированный указатель ресурса пустой, или невозможно определить определитель местонахождения запрашиваемого  ресурса"),
+            return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Унифицированный указатель ресурса пустой, или невозможно определить определитель местонахождения запрашиваемого  ресурса"),
                     HttpStatus.BAD_REQUEST);
         if (isConfigurations(url)) {
             oneUrl = url;
             return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
         } else
-            return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
+            return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
     }
 

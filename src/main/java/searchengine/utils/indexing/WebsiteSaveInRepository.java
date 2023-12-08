@@ -37,7 +37,7 @@ public class WebsiteSaveInRepository {
         ArrayList<Website> list = new ArrayList<>();
         sitesList.getSites().forEach(site -> list.add(newSiteEntity(site)));
         list.forEach(siteRepository::save);
-        if (IndexingServiceImpl.oneUrl != "") {
+        if (!IndexingServiceImpl.oneUrl.equals("")) {
             siteRepository.deleteAllInBatch();
             oneSiteEntity(IndexingServiceImpl.oneUrl);
         }

@@ -1,4 +1,5 @@
 package searchengine.services.lemma;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.utils.searchandLemma.LemmaFinder;
+
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -27,7 +29,7 @@ public class LemmasServiceImpl implements LemmaService {
     private Integer countPages = 0;
     private Integer countLemmas = 0;
     private Integer countIndexes = 0;
-    private  Website siteEntity;
+    private Website siteEntity;
     private Indexes indexEntity;
     private volatile boolean cycle = false;
     private BlockingQueue<Page> queue;
@@ -39,7 +41,7 @@ public class LemmasServiceImpl implements LemmaService {
     private final IndexRepository indexRepository;
     private final LemmaRepository lemmaRepository;
 
-    public  void startCollecting() {
+    public void startCollecting() {
         while (allowed()) {
             int countPag = pageRepository.countBySiteEntity(siteEntity);
             if (!offOn) {
@@ -62,8 +64,9 @@ public class LemmasServiceImpl implements LemmaService {
                 sleeping(10, "Error sleeping while waiting for an item in line");
             }
         }
-        savingIndexes();
         savingLemmas();
+        savingIndexes();
+
         log.warn(logAboutEachSite());
     }
 
@@ -81,17 +84,21 @@ public class LemmasServiceImpl implements LemmaService {
         return lemmaObj;
     }
 
-    private synchronized void savingIndexes() {
+    private void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        indexRepository.saveAll(indexEntities);
+        synchronized (indexEntities) {
+            indexRepository.saveAll(indexEntities);
+        }
         sleeping(50, " sleeping after saving lemmas");
         log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
         indexEntities.clear();
     }
 
-    private synchronized void savingLemmas() {
+    private void savingLemmas() {
         long lemmaSave = System.currentTimeMillis();
-        lemmaRepository.saveAll(lemmaEntities.values());
+        synchronized (lemmaEntities.values()) {
+            lemmaRepository.saveAll(lemmaEntities.values());
+        }
         sleeping(50, "Error sleeping after saving lemmas");
         log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
         lemmaEntities.clear();

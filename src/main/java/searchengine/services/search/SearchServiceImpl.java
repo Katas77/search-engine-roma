@@ -41,7 +41,7 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url) == null) {
-                return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов, " +
+                return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Данная страница находится за пределами сайтов, " +
                         "указанных в конфигурационном файле"),
                         HttpStatus.BAD_REQUEST);
             } else {

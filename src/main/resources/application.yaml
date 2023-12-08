@@ -22,8 +22,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
+      SET: FOREIGN_KEY_CHECKS=0;
       ddl-auto: create
     show-sql: true
+    ON : DELETE SET NULL
+
 
 
 #server:

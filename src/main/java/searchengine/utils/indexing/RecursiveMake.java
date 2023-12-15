@@ -67,7 +67,7 @@ public class RecursiveMake extends RecursiveAction {
             sleep(150);
             response = Jsoup.connect(currentUrl)
                     .ignoreHttpErrors(true)
-                    .userAgent("Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6")
+                    .userAgent(new UserAgent().userAgentGet())
                     .referrer("http://www.google.com")
                     .execute();
             document = response.parse();

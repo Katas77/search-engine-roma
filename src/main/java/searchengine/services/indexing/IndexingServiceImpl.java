@@ -37,7 +37,7 @@ public class IndexingServiceImpl implements IndexingService {
         log.warn("--метод startIndexing запущен--");
         List<Thread> threadList = new ArrayList<>();
         List<Website> websiteList = inRepository.listSitesEntity();
-        websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity),"Thread - "+siteEntity.getName())));
+        websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity), "Thread - " + siteEntity.getName())));
         threadList.forEach(Thread::start);
         return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
     }
@@ -45,15 +45,14 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
         log.warn("--метод indexingPageStart запущен--");
-        if (url == null || url.equals("") || checkUrl(url))
-            return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Унифицированный указатель ресурса пустой, или невозможно определить определитель местонахождения запрашиваемого  ресурса"),
+        oneUrl = url;
+        if (!isConfigurations(url))
+            return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
                     HttpStatus.BAD_REQUEST);
-        if (isConfigurations(url)) {
-            oneUrl = url;
+        else
+
             return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
-        } else
-            return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
-                    HttpStatus.BAD_REQUEST);
+
     }
 
     @Override

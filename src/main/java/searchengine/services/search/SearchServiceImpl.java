@@ -21,6 +21,8 @@ import searchengine.utils.indexing.JsoupConnect;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,7 +43,7 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url) == null) {
-                return new ResponseEntity<>(new BadRequest(HttpStatus.BAD_REQUEST.value(), "Данная страница находится за пределами сайтов, " +
+                return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов, " +
                         "указанных в конфигурационном файле"),
                         HttpStatus.BAD_REQUEST);
             } else {
@@ -55,7 +57,7 @@ public class SearchServiceImpl implements SearchService {
             return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
         }
         for (SearchData data : searchData) {
-            System.out.println("'" + query + "'" + " - найдено:");
+            System.out.println("'" + query + "'" + " - найден:");
             if (data.getSiteName().equals("playBack.ru")) {
                 System.out.println("https://" + data.getSiteName() + data.getUri());
             } else
@@ -74,13 +76,21 @@ public class SearchServiceImpl implements SearchService {
         for (Website siteEntity : sites) {
             sortedLemmasPerSite.addAll(getLemmasFromSite(lemmasFromQuery, siteEntity));
         }
-        List<SearchData> searchData = null;
-        for (Lemma lemmaEntity : sortedLemmasPerSite) {
-            if (lemmaEntity.getLemma().equals(query)) {
-                searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery));
-                searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
-            }
+        List<String> lemmasL = new ArrayList<>();
+        StringBuilder lemmaB = new StringBuilder();
+        for (Lemma lemma : sortedLemmasPerSite) {
+            lemmaB.append(lemma.getLemma() + "- Id -" + lemma.getId() + "- Frequency-" + lemma.getFrequency() + "- SiteEntity-" + lemma.getSiteEntity().toString() + " - size-" + sortedLemmasPerSite.size());
+            lemmasL.add(String.valueOf(lemmaB));
+            lemmaB = new StringBuilder();
         }
+        try {
+            Files.write(Paths.get("data/searchThroughAllSites.txt"), lemmasL);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        List<SearchData> searchData = null;
+        searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery));
+        searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
         log.info(" Поиск по сайтам завершен.");
         return searchData;
     }
@@ -101,6 +111,11 @@ public class SearchServiceImpl implements SearchService {
         for (String word : words) {
             List<String> lemma = lemmaFinderUtil.getLemma(word);
             lemmaList.addAll(lemma);
+        }
+        try {
+            Files.write(Paths.get("data/getQueryIntoLemma.txt"), lemmaList);
+        } catch (Exception exception) {
+            System.out.println(exception.getMessage());
         }
         return lemmaList;
     }

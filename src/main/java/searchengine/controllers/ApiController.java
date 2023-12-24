@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import searchengine.services.search.SearchService;
-import searchengine.dto.forAll.BadRequest;
+import searchengine.dto.forAll.GeneralRequest;
 import searchengine.services.statistic.StatisticsService;
 
 import java.util.ArrayList;
@@ -30,6 +30,7 @@ public class ApiController {
     private final SearchService searchService;
     private final IndexingService indexingService;
     private final StatisticsService statisticsService;
+
     ArrayList<SearchData> searchData = new ArrayList<>();
 
 
@@ -48,8 +49,7 @@ public class ApiController {
     public ResponseEntity<Object> startIndexing() {
         if (isIndexing()) {
             indexingService.indexingStop();
-            return new ResponseEntity<>(new BadRequest(false, "Индексация уже запущена"),
-                    HttpStatus.OK);
+            return new GeneralRequest().indexationAlreadyStarted();
         }
         return indexingService.indexingStart();
     }
@@ -63,8 +63,7 @@ public class ApiController {
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
         if (!isIndexing())
-            return new ResponseEntity<>(new BadRequest(false, "Индексация не запущена"),
-                    HttpStatus.BAD_REQUEST);
+            return new GeneralRequest().indexingNotRunning();
         return indexingService.indexingStop();
     }
 
@@ -76,7 +75,6 @@ public class ApiController {
         if (indexRepositoryEmpty()) {
             return new ResponseEntity<>(new SearchResponse(true, 1, searchData), HttpStatus.OK);
         } else
-
             return searchService.search(query, site, offset, limit);
     }
 

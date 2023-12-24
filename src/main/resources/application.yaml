@@ -36,5 +36,6 @@ spring:
 
 #logging:
 #  level:
-#    org.springframework.web: trace
-#    org.apache: trace
+#    org.springframework.web:  FINEST
+#    org.apache:  FINEST
+#    org.hibernate:  FINEST

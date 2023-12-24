@@ -2,15 +2,13 @@ package searchengine.services.indexing;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
+import searchengine.dto.forAll.GeneralRequest;
 import searchengine.model.Website;
 import searchengine.repositories.SiteRepository;
-import searchengine.dto.forAll.BadRequest;
-import searchengine.dto.forAll.OkResponse;
 import searchengine.utils.indexing.WebsiteSaveInRepository;
 import searchengine.utils.indexing.IndexingTools;
 
@@ -39,19 +37,18 @@ public class IndexingServiceImpl implements IndexingService {
         List<Website> websiteList = inRepository.listSitesEntity();
         websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity), "Thread - " + siteEntity.getName())));
         threadList.forEach(Thread::start);
-        return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
+        return new GeneralRequest().statusOk();
     }
 
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
         log.warn("--метод indexingPageStart запущен--");
         oneUrl = url;
-        if (!isConfigurations(url))
-            return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов,указанных в конфигурационном файле"),
-                    HttpStatus.BAD_REQUEST);
-        else
-
-            return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
+        if (!isConfigurations(url)) {
+            oneUrl = "";
+            return new GeneralRequest().indexPageFailed();
+        } else
+            return new GeneralRequest().statusOk();
 
     }
 
@@ -59,7 +56,7 @@ public class IndexingServiceImpl implements IndexingService {
     public ResponseEntity<Object> indexingStop() {
         log.warn("--stopIndexing --");
         tools.setIsActive(false);
-        return new ResponseEntity<>(new OkResponse(true), HttpStatus.OK);
+        return new GeneralRequest().statusOk();
     }
 
     public boolean checkUrl(String url) {

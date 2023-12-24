@@ -16,7 +16,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.dto.forAll.BadRequest;
+import searchengine.dto.forAll.GeneralRequest;
 import searchengine.utils.indexing.JsoupConnect;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
@@ -36,6 +36,7 @@ public class SearchServiceImpl implements SearchService {
     private final IndexRepository indexRepository;
     private final LemmaSearchTools lemmaFinderUtil;
     private final JsoupConnect jsoupConnects;
+    private GeneralRequest generalRequest=new GeneralRequest();
 
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
@@ -43,9 +44,7 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url) == null) {
-                return new ResponseEntity<>(new BadRequest(false, "Данная страница находится за пределами сайтов, " +
-                        "указанных в конфигурационном файле"),
-                        HttpStatus.BAD_REQUEST);
+                return generalRequest.indexPageFailed();
             } else {
                 searchData = onePageSearch(query, url);
             }

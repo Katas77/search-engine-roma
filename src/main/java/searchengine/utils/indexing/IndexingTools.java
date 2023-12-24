@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.*;
-
 @Slf4j
 @Setter
 @Getter
@@ -57,7 +56,6 @@ public class IndexingTools {
             updateEntity(siteEntity);
         }
     }
-
 
     private void lemmasThreadBody(Website siteEntity, CountDownLatch latch) {
         lemmaService.setQueue(blockingQueue);
@@ -154,6 +152,10 @@ public class IndexingTools {
     }
 
     private void indexed(Website siteEntity) {
+        int timeSleep = 6_000;
+        if (siteEntity.getUrl().contains("https://www.playback.ru")) {
+            timeSleep = 11_000;
+        }
         while (true) {
             try {
                 Thread.sleep(3_000);
@@ -165,7 +167,7 @@ public class IndexingTools {
             }
             int countPages1 = pageRepository.countBySiteEntity(siteEntity);
             try {
-                Thread.sleep(9_000);
+                Thread.sleep(timeSleep);
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
             }

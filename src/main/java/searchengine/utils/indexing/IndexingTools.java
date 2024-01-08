@@ -158,7 +158,7 @@ public class IndexingTools {
         }
         while (true) {
             try {
-                Thread.sleep(3_000);
+                Thread.sleep(7_000);
             } catch (InterruptedException e) {
                 System.out.println(e.getMessage());
             }

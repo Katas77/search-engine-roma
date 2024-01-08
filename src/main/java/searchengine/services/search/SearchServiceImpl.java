@@ -18,6 +18,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.GeneralRequest;
 import searchengine.utils.indexing.JsoupConnect;
+import searchengine.utils.indexing.RecursiveMake;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
 
@@ -36,15 +37,20 @@ public class SearchServiceImpl implements SearchService {
     private final IndexRepository indexRepository;
     private final LemmaSearchTools lemmaFinderUtil;
     private final JsoupConnect jsoupConnects;
-    private GeneralRequest generalRequest=new GeneralRequest();
+
 
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
+        try {
+            Files.write(Paths.get("data/getChildLinksList.txt"), RecursiveMake.getChildLinksList);
+        } catch (Exception exception) {
+            System.out.println(exception.getMessage());
+        }
         System.out.println(query + "    -   " + url + "    -      " + offset + "     -     " + limit);
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url) == null) {
-                return generalRequest.indexPageFailed();
+                return new GeneralRequest().indexPageFailed();
             } else {
                 searchData = onePageSearch(query, url);
             }
@@ -57,7 +63,7 @@ public class SearchServiceImpl implements SearchService {
         }
         for (SearchData data : searchData) {
             System.out.println("'" + query + "'" + " - найден:");
-            if (data.getSiteName().equals("playBack.ru")) {
+            if (data.getSiteName().equals("playBack.ru") & !data.getUri().contains("http")) {
                 System.out.println("https://" + data.getSiteName() + data.getUri());
             } else
                 System.out.println(data.getUri());
@@ -71,21 +77,8 @@ public class SearchServiceImpl implements SearchService {
         List<Website> sites = siteRepository.findAll();
         List<Lemma> sortedLemmasPerSite = new ArrayList<>();
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
-
         for (Website siteEntity : sites) {
             sortedLemmasPerSite.addAll(getLemmasFromSite(lemmasFromQuery, siteEntity));
-        }
-        List<String> lemmasL = new ArrayList<>();
-        StringBuilder lemmaB = new StringBuilder();
-        for (Lemma lemma : sortedLemmasPerSite) {
-            lemmaB.append(lemma.getLemma() + "- Id -" + lemma.getId() + "- Frequency-" + lemma.getFrequency() + "- SiteEntity-" + lemma.getSiteEntity().toString() + " - size-" + sortedLemmasPerSite.size());
-            lemmasL.add(String.valueOf(lemmaB));
-            lemmaB = new StringBuilder();
-        }
-        try {
-            Files.write(Paths.get("data/searchThroughAllSites.txt"), lemmasL);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
         }
         List<SearchData> searchData = null;
         searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery));
@@ -111,11 +104,6 @@ public class SearchServiceImpl implements SearchService {
             List<String> lemma = lemmaFinderUtil.getLemma(word);
             lemmaList.addAll(lemma);
         }
-        try {
-            Files.write(Paths.get("data/getQueryIntoLemma.txt"), lemmaList);
-        } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-        }
         return lemmaList;
     }
 
@@ -133,7 +121,6 @@ public class SearchServiceImpl implements SearchService {
             LinkedHashMap<Page, Float> sortedPagesByAbsRelevance =
                     getSortPagesWithAbsRelevance(sortedPageList, sortedIndexList);
             searchDataList = getSearchData(sortedPagesByAbsRelevance, lemmasFromQuery);
-
         }
         return searchDataList;
     }
@@ -171,7 +158,7 @@ public class SearchServiceImpl implements SearchService {
             Website siteEntity = pageEntity.getSiteEntity();
             String siteName = siteEntity.getName();
             String site = "";
-            if (siteName.equals("playBack.ru")) {
+            if (siteName.equals("playBack.ru") & !uri.contains("http")) {
                 site = "https://" + siteName;
                 uri = pageEntity.getPath();
             }

@@ -44,6 +44,7 @@ public class RecursiveMake extends RecursiveAction {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
     public static final String urlValid = "^(ht|f)tp(s?)://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(/?)([a-zA-Z0-9\\-.,'=/\\\\+%_]*)?$";
+    public static ArrayList<String> getChildLinksList = new ArrayList<>();
 
     public RecursiveMake(String currentUrl,
                          Website siteEntity,
@@ -97,6 +98,8 @@ public class RecursiveMake extends RecursiveAction {
                 continue;
             else if (urlIsValidToProcess(url, newChildLinks, href)) {
                 addHrefToOutcomeValue(newChildLinks, href);
+            } else {
+                getChildLinksList.add("getChildLinksList------" + href);
             }
             lock.readLock().unlock();
         }
@@ -113,12 +116,9 @@ public class RecursiveMake extends RecursiveAction {
 
     private boolean urlIsValidToProcess(String sourceUrl, Set<String> newChildLinks, String extractedHref) {
         return sourceUrl.matches(urlValid)
-                && !extractedHref.contains("#")
                 && !extractedHref.equals(sourceUrl)
                 && !newChildLinks.contains(extractedHref)
-                &&
-                (html.stream().anyMatch(extractedHref.substring(extractedHref.length() - 4)::contains)
-                        | !extractedHref.matches(urlLink));
+                | !extractedHref.matches(urlLink);
     }
 
     private void cleanHtmlContent() {
@@ -149,6 +149,7 @@ public class RecursiveMake extends RecursiveAction {
     private void forkAndJoinTasks() {
         if (!isActive)
             return;
+
         List<RecursiveMake> subTasks = new LinkedList<>();
         for (String childLink : childLinks) {
             if (childIsValidToFork(childLink)
@@ -162,8 +163,12 @@ public class RecursiveMake extends RecursiveAction {
                 } catch (DataIntegrityViolationException e) {
                     e.getMessage();
                 }
+            } else {
+                getChildLinksList.add("forkAndJoinTasks---" + childLink);
             }
         }
+
+
         for (RecursiveMake task : subTasks) task.join();
     }
 
@@ -195,3 +200,4 @@ public class RecursiveMake extends RecursiveAction {
     }
 
 }
+

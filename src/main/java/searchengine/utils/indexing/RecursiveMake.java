@@ -36,14 +36,14 @@ public class RecursiveMake extends RecursiveAction {
     private Document document;
     private Page pageEntity;
     private Website siteEntity;
-    private Set<String> childLinks;
+    private CopyOnWriteArraySet<String> childLinks;
     private Connection.Response response = null;
     private final PageRepository pageRepository;
     private BlockingQueue<Page> outcomeQueue;
     public static final ArrayList<String> html = new ArrayList<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
-    public static final String urlValid = "^(ht|f)tp(s?)://[0-9a-zA-Z]([-.\\w]*[0-9a-zA-Z])*(:(0-9)*)*(/?)([a-zA-Z0-9\\-.,'=/\\\\+%_]*)?$";
+
     public static ArrayList<String> getChildLinksList = new ArrayList<>();
 
     public RecursiveMake(String currentUrl,
@@ -89,10 +89,10 @@ public class RecursiveMake extends RecursiveAction {
         forkAndJoinTasks();
     }
 
-    public Set<String> getChildLinks(String url, Elements elements) {
-        Set<String> newChildLinks = new HashSet<>();
+    public CopyOnWriteArraySet<String> getChildLinks(String url, Elements elements) {
+        CopyOnWriteArraySet<String> newChildLinks = new CopyOnWriteArraySet<>();
         for (Element element : elements) {
-            final String href = getHrefFromElement(element).toLowerCase();
+            final String href = wwwAdd(getHrefFromElement(element).toLowerCase());
             lock.readLock().lock();
             if (links.containsKey(href))
                 continue;
@@ -106,7 +106,7 @@ public class RecursiveMake extends RecursiveAction {
         return newChildLinks;
     }
 
-    private void addHrefToOutcomeValue(Set<String> newChildLinks, String href) {
+    private void addHrefToOutcomeValue(CopyOnWriteArraySet<String> newChildLinks, String href) {
         if (!links.containsKey(href)
                 && !pages404.containsKey(href)
                 && !savedPaths.containsKey(href)) {
@@ -114,11 +114,12 @@ public class RecursiveMake extends RecursiveAction {
         }
     }
 
-    private boolean urlIsValidToProcess(String sourceUrl, Set<String> newChildLinks, String extractedHref) {
-        return sourceUrl.matches(urlValid)
-                && !extractedHref.equals(sourceUrl)
+    private boolean urlIsValidToProcess(String sourceUrl, CopyOnWriteArraySet<String> newChildLinks, String extractedHref) {
+        return  !isFile(sourceUrl)
                 && !newChildLinks.contains(extractedHref)
-                | !extractedHref.matches(urlLink);
+                && !isFile(extractedHref)
+                && nameSiteContains(sourceUrl);
+
     }
 
     private void cleanHtmlContent() {
@@ -152,7 +153,7 @@ public class RecursiveMake extends RecursiveAction {
 
         List<RecursiveMake> subTasks = new LinkedList<>();
         for (String childLink : childLinks) {
-            if (childIsValidToFork(childLink)
+            if (childLink.startsWith("https:")
                     && !pages404.containsKey(childLink)
                     && !links.containsKey(childLink)) {
                 try {
@@ -168,18 +169,9 @@ public class RecursiveMake extends RecursiveAction {
             }
         }
 
-
         for (RecursiveMake task : subTasks) task.join();
     }
 
-    private boolean childIsValidToFork(String subLink) {
-        final String ext = subLink.substring(subLink.length() - 4);
-        html.add("html");
-        html.add("dhtml");
-        html.add("shtml");
-        html.add("xhtml");
-        return (html.stream().anyMatch(ext::contains) | !subLink.matches(urlLink));
-    }
 
     public String getHrefFromElement(Element element) {
         return (element != null) ? element.absUrl("href") : "";
@@ -198,6 +190,28 @@ public class RecursiveMake extends RecursiveAction {
             System.out.println(ex.getMessage());
         }
     }
+    private boolean isFile(String link) {
+        return link.contains(".jpg")
+                || link.contains(".png")
+                || link.contains(".gif")
+                || link.contains(".webp")
+                || link.contains(".pdf")
+                || link.contains(".eps")
+                || link.contains(".xlsx")
+                || link.contains(".doc")
+                || link.contains(".pptx")
+                || link.contains(".docx")
+                || link.contains("?_ga");
+    }
 
+    public String wwwAdd(String url) {
+        String newUrl = "";
+        if (!url.startsWith("https://www.")) {
+            newUrl = url.replace("https://", "https://www.");
+        } else newUrl = url;
+        return newUrl;
+    }
+    public boolean nameSiteContains(String href) {
+        return href.toLowerCase().contains("skillbox") || href.toLowerCase().contains("playback") || href.toLowerCase().contains("lenta");
+    }
 }
-

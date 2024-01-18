@@ -22,7 +22,7 @@ public class StringPool {
     }
 
     public static void internVisitedLinks(String s) {
-        String exist = links.putIfAbsent(s, s);
+        String exist =links.putIfAbsent(s, s);
     }
 
     public static void internSavedPath(String s) {

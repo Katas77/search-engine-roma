@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
 import searchengine.dto.searh.SearchData;
 import searchengine.dto.searh.SearchResponse;
 import searchengine.model.Indexes;
@@ -43,6 +42,7 @@ public class SearchServiceImpl implements SearchService {
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
         try {
             Files.write(Paths.get("data/getChildLinksList.txt"), RecursiveMake.getChildLinksList);
+
         } catch (Exception exception) {
             System.out.println(exception.getMessage());
         }
@@ -63,10 +63,9 @@ public class SearchServiceImpl implements SearchService {
         }
         for (SearchData data : searchData) {
             System.out.println("'" + query + "'" + " - найден:");
-            if (data.getSiteName().equals("playBack.ru") & !data.getUri().contains("http")) {
-                System.out.println("https://" + data.getSiteName() + data.getUri());
-            } else
-                System.out.println(data.getUri());
+            if (!data.getUri().contains("https:")) {
+                System.out.println(data.getSite() + data.getUri());
+            } else System.out.println(data.getUri());
         }
         return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)), HttpStatus.OK);
     }
@@ -158,8 +157,16 @@ public class SearchServiceImpl implements SearchService {
             Website siteEntity = pageEntity.getSiteEntity();
             String siteName = siteEntity.getName();
             String site = "";
-            if (siteName.equals("playBack.ru") & !uri.contains("http")) {
-                site = "https://" + siteName;
+            if (siteName.equals("playBack.ru") & !uri.contains("https:")) {
+                site = "https://www.playback.ru";
+                uri = pageEntity.getPath();
+            }
+            if (siteName.equals("skillbox.ru") & !uri.contains("https:")) {
+                site = "https://www.skillbox.ru";
+                uri = pageEntity.getPath();
+            }
+            if (siteName.equals("lenta.ru") & !uri.contains("https:")) {
+                site = "https://www.lenta.ru";
                 uri = pageEntity.getPath();
             }
             Float absRelevance = sortedPages.get(pageEntity);

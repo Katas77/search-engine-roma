@@ -1,9 +1,11 @@
 package searchengine.services.lemma;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.dao.InvalidDataAccessApiUsageException;

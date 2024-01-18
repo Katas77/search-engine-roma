@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
 
-@Component
+
 public class UserAgent {
     public ArrayList<String> userAgentList;
 

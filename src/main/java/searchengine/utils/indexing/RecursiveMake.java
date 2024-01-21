@@ -133,7 +133,7 @@ public class RecursiveMake extends RecursiveAction {
         }
     }
 
-    private void saveExtractedPage() {
+    private synchronized void saveExtractedPage() {
         lock.readLock().lock();
         if (!savedPaths.containsKey(parentPath)) {
             try {

@@ -45,7 +45,12 @@ public class IndexingTools {
         RecursiveThreadBody(joinPool, siteEntity, latch);
         Thread thread = new Thread(() -> indexed(siteEntity));
         thread.start();
-        lemmasThreadBody(siteEntity, latch);
+        try {
+            lemmasThreadBody(siteEntity, latch);
+        }
+        catch (NullPointerException exception)
+        {}
+
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -63,7 +68,7 @@ public class IndexingTools {
         lemmaService.setSiteEntity(siteEntity);
         try {
             lemmaService.startCollecting();
-        } catch (DataIntegrityViolationException | ConcurrentModificationException exception) {
+        } catch (DataIntegrityViolationException | ConcurrentModificationException exception ) {
         }
         latch.countDown();
         log.warn("thread finished, latch =  " + latch.getCount());

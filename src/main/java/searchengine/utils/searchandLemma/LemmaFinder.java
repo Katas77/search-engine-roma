@@ -69,7 +69,6 @@ public class LemmaFinder {
         return lemmas;
     }
 
-
     private boolean anyWordBaseBelongToParticle(List<String> wordBaseForms) {
         return wordBaseForms.stream().anyMatch(this::hasParticleProperty);
     }
@@ -96,5 +95,4 @@ public class LemmaFinder {
                 .trim()
                 .split("\\s+");
     }
-
 }

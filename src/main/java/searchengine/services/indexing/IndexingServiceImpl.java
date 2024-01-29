@@ -59,10 +59,6 @@ public class IndexingServiceImpl implements IndexingService {
         return new GeneralRequest().statusOk();
     }
 
-    public boolean checkUrl(String url) {
-        return url.matches("\"^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]\";");
-    }
-
     public boolean isConfigurations(String url) {
         for (Site site : sitesList.getSites()) {
             if (url.startsWith(site.getUrl())) {

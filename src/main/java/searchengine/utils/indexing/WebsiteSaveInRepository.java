@@ -34,10 +34,11 @@ public class WebsiteSaveInRepository {
         lemmaRepository.deleteAllInBatch();
         pageRepository.deleteAllInBatch();
         siteRepository.deleteAllInBatch();
+
         ArrayList<Website> list = new ArrayList<>();
         sitesList.getSites().forEach(site -> list.add(newSiteEntity(site)));
         list.forEach(siteRepository::save);
-        if (!IndexingServiceImpl.oneUrl.equals("")) {
+        if (!IndexingServiceImpl.oneUrl.isEmpty()) {
             siteRepository.deleteAllInBatch();
             oneSiteEntity(IndexingServiceImpl.oneUrl);
         }
@@ -66,6 +67,5 @@ public class WebsiteSaveInRepository {
         siteEntity.setName(nameArr[0]);
         siteRepository.save(siteEntity);
     }
-
 
 }

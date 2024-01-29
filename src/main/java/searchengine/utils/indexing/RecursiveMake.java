@@ -31,20 +31,17 @@ import static searchengine.utils.indexing.StringPool.*;
 public class RecursiveMake extends RecursiveAction {
     public static volatile Boolean isActive = true;
     public String siteUrl;
-    private String currentUrl;
+    private final String currentUrl;
     private String parentPath;
     private Document document;
     private Page pageEntity;
-    private Website siteEntity;
+    private final Website siteEntity;
     private CopyOnWriteArraySet<String> childLinks;
-    private Connection.Response response = null;
     private final PageRepository pageRepository;
-    private BlockingQueue<Page> outcomeQueue;
+    private final BlockingQueue<Page> outcomeQueue;
     public static final ArrayList<String> html = new ArrayList<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    public static final String urlLink = "https?:/(?:/[^/]+)+/[А-Яа-яёЁ\\w\\W ]+\\.[\\wa-z]{2,5}(?!/|[\\wА-Яа-яёЁ])";
 
-    public static ArrayList<String> getChildLinksList = new ArrayList<>();
 
     public RecursiveMake(String currentUrl,
                          Website siteEntity,
@@ -66,7 +63,7 @@ public class RecursiveMake extends RecursiveAction {
         lock.readLock().unlock();
         try {
             sleep(150);
-            response = Jsoup.connect(currentUrl)
+            Connection.Response response = Jsoup.connect(currentUrl)
                     .ignoreHttpErrors(true)
                     .userAgent(new UserAgent().userAgentGet())
                     .referrer("http://www.google.com")
@@ -80,7 +77,6 @@ public class RecursiveMake extends RecursiveAction {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
         saveExtractedPage();
         final Elements elements = document.select("a[href]");
         if (!elements.isEmpty()) {
@@ -98,8 +94,6 @@ public class RecursiveMake extends RecursiveAction {
                 continue;
             else if (urlIsValidToProcess(url, newChildLinks, href)) {
                 addHrefToOutcomeValue(newChildLinks, href);
-            } else {
-                getChildLinksList.add("getChildLinksList------" + href);
             }
             lock.readLock().unlock();
         }
@@ -115,9 +109,9 @@ public class RecursiveMake extends RecursiveAction {
     }
 
     private boolean urlIsValidToProcess(String sourceUrl, CopyOnWriteArraySet<String> newChildLinks, String extractedHref) {
-        return  !isFile(sourceUrl)
+        return isImageAndDoc(sourceUrl)
                 && !newChildLinks.contains(extractedHref)
-                && !isFile(extractedHref)
+                && isImageAndDoc(extractedHref)
                 && nameSiteContains(sourceUrl);
 
     }
@@ -164,8 +158,6 @@ public class RecursiveMake extends RecursiveAction {
                 } catch (DataIntegrityViolationException e) {
                     e.getMessage();
                 }
-            } else {
-                getChildLinksList.add("forkAndJoinTasks---" + childLink);
             }
         }
 
@@ -190,18 +182,19 @@ public class RecursiveMake extends RecursiveAction {
             System.out.println(ex.getMessage());
         }
     }
-    private boolean isFile(String link) {
-        return link.contains(".jpg")
-                || link.contains(".png")
-                || link.contains(".gif")
-                || link.contains(".webp")
-                || link.contains(".pdf")
-                || link.contains(".eps")
-                || link.contains(".xlsx")
-                || link.contains(".doc")
-                || link.contains(".pptx")
-                || link.contains(".docx")
-                || link.contains("?_ga");
+
+    private boolean isImageAndDoc(String link) {
+        return !link.contains(".jpg")
+                && !link.contains(".png")
+                && !link.contains(".gif")
+                && !link.contains(".webp")
+                && !link.contains(".pdf")
+                && !link.contains(".eps")
+                && !link.contains(".xlsx")
+                && !link.contains(".doc")
+                && !link.contains(".pptx")
+                && !link.contains(".docx")
+                && !link.contains("?_ga");
     }
 
     public String wwwAdd(String url) {
@@ -211,6 +204,7 @@ public class RecursiveMake extends RecursiveAction {
         } else newUrl = url;
         return newUrl;
     }
+
     public boolean nameSiteContains(String href) {
         return href.toLowerCase().contains("skillbox") || href.toLowerCase().contains("playback") || href.toLowerCase().contains("lenta");
     }

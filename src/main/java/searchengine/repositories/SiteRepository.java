@@ -9,9 +9,7 @@ import searchengine.model.Status;
 @Repository
 public interface SiteRepository extends JpaRepository<Website, Long> {
 
-
     Website findByUrl(String url);
-
 
     boolean existsByStatus(Status status);
 

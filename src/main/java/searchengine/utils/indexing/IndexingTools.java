@@ -21,13 +21,14 @@ import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.*;
+
 @Slf4j
 @Setter
 @Getter
 @Component
 @RequiredArgsConstructor
 public class IndexingTools {
-    private ExecutorService executorService;
+
     private boolean update = true;
     private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
     private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(1_00);
@@ -47,10 +48,9 @@ public class IndexingTools {
         thread.start();
         try {
             lemmasThreadBody(siteEntity, latch);
+        } catch (NullPointerException ignored) {
+            System.out.println("Ignoring the exception");
         }
-        catch (NullPointerException exception)
-        {}
-
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -68,7 +68,8 @@ public class IndexingTools {
         lemmaService.setSiteEntity(siteEntity);
         try {
             lemmaService.startCollecting();
-        } catch (DataIntegrityViolationException | ConcurrentModificationException exception ) {
+        } catch (DataIntegrityViolationException | ConcurrentModificationException ignored) {
+            System.out.println("Ignoring the exception");
         }
         latch.countDown();
         log.warn("thread finished, latch =  " + latch.getCount());
@@ -140,18 +141,17 @@ public class IndexingTools {
             setStatus(countPages, siteEntity);
             siteRepository.save(siteEntity);
         }
-
     }
 
     private void setStatus(int countPages, Website siteEntity) {
         switch (countPages) {
             case 0 -> {
                 siteEntity.setStatus(Status.FAILED);
-                siteEntity.setLastError("Ошибка индексации: главная страница сайта не доступна");
+                siteEntity.setLastError("Ошибка индексации: Не возможно  установить соединение с запрошенным веб - сайтом.");
             }
             case 1 -> {
                 siteEntity.setStatus(Status.FAILED);
-                siteEntity.setLastError("Ошибка индексации: сайт не доступен");
+                siteEntity.setLastError("Ошибка индексации: Произошла длительная задержка при переходе по гиперссылкам  веб-страницы.");
             }
         }
     }

@@ -52,5 +52,4 @@ public class Website {
     @OneToMany(mappedBy = "siteEntity", cascade = CascadeType.REMOVE)
     private Set<Lemma> lemmaEntity;
 
-
 }

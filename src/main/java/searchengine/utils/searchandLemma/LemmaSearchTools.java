@@ -22,6 +22,7 @@ public class LemmaSearchTools {
         try {
             englishMorphology = new EnglishMorphology();
         } catch (IOException ignored) {
+            System.out.println("Continue code as normal");
         }
     }
 
@@ -31,6 +32,7 @@ public class LemmaSearchTools {
         try {
             russianLuceneMorphology = new RussianLuceneMorphology();
         } catch (IOException ignored) {
+            System.out.println("Continue code as normal");
         }
     }
 
@@ -73,7 +75,7 @@ public class LemmaSearchTools {
 
     public static boolean isRussianWord(String word) {
         int length = word.replaceAll("[a-zA-Z0-9]+", "").trim().length();
-        return length != 0 ? true : false;
+        return length != 0;
     }
 
     private boolean isServiceWord(String word) {
@@ -94,7 +96,6 @@ public class LemmaSearchTools {
     public String removeHtmlTags(String html) {
         Pattern pattern = Pattern.compile("<[^>]*>");
         Matcher matcher = pattern.matcher(html);
-        String plainText = matcher.replaceAll("");
-        return plainText;
+        return matcher.replaceAll("");
     }
 }

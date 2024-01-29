@@ -53,18 +53,18 @@ public class LemmasServiceImpl implements LemmaService {
             }
             Page pageEntity = queue.poll();
             if (pageEntity != null & countPag != 0) {
-                collectedLemmas = lemmaFinder.collectLemmas
+                this.collectedLemmas = lemmaFinder.collectLemmas
                         (Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
-                for (String lemma : collectedLemmas.keySet()) {
+                for (String lemma : this.collectedLemmas.keySet()) {
                     if (collectedLemmas.get(lemma) == null) {
                         collectedLemmas.remove(lemma);
                     }
                 }
-                for (String lemma : collectedLemmas.keySet()) {
+                for (String lemma : this.collectedLemmas.keySet()) {
                     if (collectedLemmas.get(lemma) != null) {
                         int rank = collectedLemmas.get(lemma);
                         Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
-                        indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
+                        this.indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
                         countIndexes++;
                     } else
                         throw new NullPointerException("collectedLemmas.get(lemma) must not be null");
@@ -95,10 +95,10 @@ public class LemmasServiceImpl implements LemmaService {
 
     private synchronized void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        indexRepository.saveAll(indexEntities);
+        this.indexRepository.saveAll(this.indexEntities);
         sleeping(50, " sleeping after saving lemmas");
         log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
-        indexEntities.clear();
+        this.indexEntities.clear();
     }
 
     private synchronized void savingLemmas() {

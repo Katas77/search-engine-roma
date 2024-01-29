@@ -17,12 +17,8 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.dto.forAll.GeneralRequest;
 import searchengine.utils.indexing.JsoupConnect;
-import searchengine.utils.indexing.RecursiveMake;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,12 +36,6 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
-        try {
-            Files.write(Paths.get("data/getChildLinksList.txt"), RecursiveMake.getChildLinksList);
-
-        } catch (Exception exception) {
-            System.out.println(exception.getMessage());
-        }
         System.out.println(query + "    -   " + url + "    -      " + offset + "     -     " + limit);
         List<SearchData> searchData;
         if (!url.isEmpty()) {

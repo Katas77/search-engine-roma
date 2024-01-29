@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Component;
 public class GeneralRequest {
     boolean result;
     String error;
-
 
 
     public ResponseEntity<Object> statusOk() {

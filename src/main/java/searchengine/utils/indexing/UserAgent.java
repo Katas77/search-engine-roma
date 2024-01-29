@@ -1,6 +1,5 @@
 package searchengine.utils.indexing;
 
-import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;

@@ -15,7 +15,7 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingServiceImpl;
-import searchengine.services.lemma.LemmaService;
+import searchengine.utils.lemma.LemmaTools;
 
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -36,7 +36,7 @@ public class IndexingTools {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final SiteRepository siteRepository;
-    private final LemmaService lemmaService;
+    private final LemmaTools lemmaService;
     private ForkJoinPool joinPool = new ForkJoinPool(CORE_COUNT);
 
     public void startTreadsIndexing(Website siteEntity) {
@@ -157,7 +157,7 @@ public class IndexingTools {
     }
 
     private void indexed(Website siteEntity) {
-        int timeSleep = 6_000;
+        int timeSleep = 8_000;
         if (siteEntity.getUrl().contains("https://www.playback.ru")) {
             timeSleep = 11_000;
         }

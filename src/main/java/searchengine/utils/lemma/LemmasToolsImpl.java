@@ -1,4 +1,4 @@
-package searchengine.services.lemma;
+package searchengine.utils.lemma;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import static java.lang.Thread.sleep;
 @Setter
 @Service
 @RequiredArgsConstructor
-public class LemmasServiceImpl implements LemmaService {
+public class LemmasToolsImpl implements LemmaTools {
     private Boolean offOn = true;
     private Integer countPages = 0;
     private Integer countLemmas = 0;

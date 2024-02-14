@@ -206,6 +206,6 @@ public class RecursiveMake extends RecursiveAction {
     }
 
     public boolean nameSiteContains(String href) {
-        return href.toLowerCase().contains("skillbox") || href.toLowerCase().contains("playback") || href.toLowerCase().contains("lenta");
+        return href.toLowerCase().contains("skillbox") || href.toLowerCase().contains("playback") || href.toLowerCase().contains("upakmarket");
     }
 }

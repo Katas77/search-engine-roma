@@ -39,12 +39,12 @@ public class IndexingTools {
     private final LemmaTools lemmaService;
     private ForkJoinPool joinPool = new ForkJoinPool(CORE_COUNT);
 
-    public void startTreadsIndexing(Website siteEntity) {
+    public  void startTreadsIndexing(Website siteEntity) {
         log.warn("Full indexing will be started now");
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
         RecursiveThreadBody(joinPool, siteEntity, latch);
-        Thread thread = new Thread(() -> indexed(siteEntity));
+        Thread thread = new Thread(() -> stopIndexing(siteEntity));
         thread.start();
         try {
             lemmasThreadBody(siteEntity, latch);
@@ -156,7 +156,7 @@ public class IndexingTools {
         }
     }
 
-    private void indexed(Website siteEntity) {
+    private void stopIndexing(Website siteEntity) {
         int timeSleep = 8_000;
         if (siteEntity.getUrl().contains("https://www.playback.ru")) {
             timeSleep = 11_000;

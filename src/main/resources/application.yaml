@@ -1,13 +1,12 @@
 # example values
-
 indexing-settings:
   sites:
     - url: https://www.skillbox.ru
       name: skillbox.ru
     - url: https://www.playback.ru
       name: playBack.ru
-    - url: https://www.lenta.ru
-      name: lenta.ru
+    - url: https://upakmarket.com
+      name: upakmarket.com
 
 server:
   port: 8081
@@ -15,19 +14,19 @@ server:
 spring:
   datasource:
     username: root
-    password: Romakat77
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+    password: romakat77
+    url: jdbc:postgresql://localhost:5432/search_engine
+    driver-class-name: org.postgresql.Driver
+jpa:
+  properties:
     hibernate:
-      SET: FOREIGN_KEY_CHECKS=0;
       ddl-auto: create
-    show-sql: true
-    ON : DELETE SET NULL
+      dialect: org.hibernate.dialect.PostgreSQLDialect
 
+    SET: FOREIGN_KEY_CHECKS=0;
 
+  show-sql: true
+  ON : DELETE SET NULL
 
 #server:
 #  servlet:

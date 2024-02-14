@@ -22,7 +22,6 @@ public class LemmaSearchTools {
         try {
             englishMorphology = new EnglishMorphology();
         } catch (IOException ignored) {
-            System.out.println("Continue code as normal");
         }
     }
 
@@ -32,7 +31,6 @@ public class LemmaSearchTools {
         try {
             russianLuceneMorphology = new RussianLuceneMorphology();
         } catch (IOException ignored) {
-            System.out.println("Continue code as normal");
         }
     }
 

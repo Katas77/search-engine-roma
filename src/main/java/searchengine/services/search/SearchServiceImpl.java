@@ -155,8 +155,8 @@ public class SearchServiceImpl implements SearchService {
                 site = "https://www.skillbox.ru";
                 uri = pageEntity.getPath();
             }
-            if (siteName.equals("lenta.ru") & !uri.contains("https:")) {
-                site = "https://www.lenta.ru";
+            if (siteName.equals("upakmarket.com") & !uri.contains("https:")) {
+                site = "https://upakmarket.com";
                 uri = pageEntity.getPath();
             }
             Float absRelevance = sortedPages.get(pageEntity);
@@ -175,7 +175,7 @@ public class SearchServiceImpl implements SearchService {
             lemmaIndex.addAll(lemmaFinderUtil.findLemmaIndexInText(content, lemma));
         }
         Collections.sort(lemmaIndex);
-        List<String> wordsList = extractAndHighlightWordsByLemmaIndex(content, lemmaIndex);
+        List<String> wordsList = extractAndHighWords(content, lemmaIndex);
         for (int i = 0; i < wordsList.size(); i++) {
             result.append(wordsList.get(i)).append("... ");
             if (i > 3) {
@@ -185,7 +185,7 @@ public class SearchServiceImpl implements SearchService {
         return result.toString();
     }
 
-    private List<String> extractAndHighlightWordsByLemmaIndex(String content, List<Integer> lemmaIndex) {
+    private List<String> extractAndHighWords(String content, List<Integer> lemmaIndex) {
         List<String> result = new ArrayList<>();
         for (int i = 0; i < lemmaIndex.size(); i++) {
             int start = lemmaIndex.get(i);
@@ -196,14 +196,14 @@ public class SearchServiceImpl implements SearchService {
                 step += 1;
             }
             i = step - 1;
-            String text = getWordsFromIndexWithHighlighting(start, end, content);
+            String text = getWordsFromIndex(start, end, content);
             result.add(text);
         }
         result.sort(Comparator.comparingInt(String::length).reversed());
         return result;
     }
 
-    private String getWordsFromIndexWithHighlighting(int start, int end, String content) {
+    private String getWordsFromIndex(int start, int end, String content) {
         String word = content.substring(start, end);
         int prevPoint;
         int lastPoint;
@@ -223,10 +223,10 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<SearchData> searchDataOffset(List<SearchData> searchData, int offset, int limit) {
-        int a = limit + offset;
-        if (a > searchData.size()) {
-            a = searchData.size();
+        int batch = limit + offset;
+        if (batch > searchData.size()) {
+            batch = searchData.size();
         }
-        return searchData.subList(offset, a);
+        return searchData.subList(offset, batch);
     }
 }

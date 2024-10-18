@@ -13,20 +13,20 @@ server:
 
 spring:
   datasource:
-    username: root
-    password: romakat77
-    url: jdbc:postgresql://localhost:5432/search_engine
-    driver-class-name: org.postgresql.Driver
-jpa:
-  properties:
+    username: roma2
+    password: roma2
+    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
+      SET: FOREIGN_KEY_CHECKS=0;
       ddl-auto: create
-      dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
 
-    SET: FOREIGN_KEY_CHECKS=0;
 
-  show-sql: true
-  ON : DELETE SET NULL
+
 
 #server:
 #  servlet:

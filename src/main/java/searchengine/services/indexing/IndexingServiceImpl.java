@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
-import searchengine.dto.forAll.GeneralRequest;
+import searchengine.dto.forAll.Request;
 import searchengine.model.Website;
 import searchengine.repositories.SiteRepository;
 import searchengine.utils.indexing.WebsiteSaveInRepository;
@@ -37,7 +37,7 @@ public class IndexingServiceImpl implements IndexingService {
         List<Website> websiteList = inRepository.listSitesEntity();
         websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity), "Thread - " + siteEntity.getName())));
         threadList.forEach(Thread::start);
-        return new GeneralRequest().statusOk();
+        return new Request().statusOk();
     }
 
     @Override
@@ -46,9 +46,9 @@ public class IndexingServiceImpl implements IndexingService {
         oneUrl = url;
         if (!isConfigurations(url)) {
             oneUrl = "";
-            return new GeneralRequest().indexPageFailed();
+            return new Request().indexPageFailed();
         } else
-            return new GeneralRequest().statusOk();
+            return new Request().statusOk();
 
     }
 
@@ -56,7 +56,7 @@ public class IndexingServiceImpl implements IndexingService {
     public ResponseEntity<Object> indexingStop() {
         log.warn("--stopIndexing --");
         tools.setIsActive(false);
-        return new GeneralRequest().statusOk();
+        return new Request().statusOk();
     }
 
     public boolean isConfigurations(String url) {

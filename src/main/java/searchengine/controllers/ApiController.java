@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import searchengine.services.search.SearchService;
-import searchengine.dto.forAll.GeneralRequest;
+import searchengine.dto.forAll.Request;
 import searchengine.services.statistic.StatisticsService;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class ApiController {
     public ResponseEntity<Object> startIndexing() {
         if (isIndexing()) {
             indexingService.indexingStop();
-            return new GeneralRequest().indexationAlreadyStarted();
+            return new Request().indexationAlreadyStarted();
         }
         return indexingService.indexingStart();
     }
@@ -63,7 +63,7 @@ public class ApiController {
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
         if (!isIndexing())
-            return new GeneralRequest().indexingNotRunning();
+            return new Request().indexingNotRunning();
         return indexingService.indexingStop();
     }
 

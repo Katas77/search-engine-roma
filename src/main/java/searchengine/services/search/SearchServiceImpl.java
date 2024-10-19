@@ -15,7 +15,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.dto.forAll.GeneralRequest;
+import searchengine.dto.forAll.Request;
 import searchengine.utils.indexing.JsoupConnect;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
@@ -40,7 +40,7 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url) == null) {
-                return new GeneralRequest().indexPageFailed();
+                return new Request().indexPageFailed();
             } else {
                 searchData = onePageSearch(query, url);
             }

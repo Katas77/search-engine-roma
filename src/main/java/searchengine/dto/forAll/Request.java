@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class GeneralRequest {
+public class Request {
     boolean result;
     String error;
 
 
     public ResponseEntity<Object> statusOk() {
         return new ResponseEntity<>(
-                new GeneralRequest(
+                new Request(
                         true,
                         "Успешное принятие и обработка запроса клиента."),
                 HttpStatus.OK);
@@ -25,7 +25,7 @@ public class GeneralRequest {
 
     public ResponseEntity<Object> indexationAlreadyStarted() {
         return new ResponseEntity<>(
-                new GeneralRequest(
+                new Request(
                         false,
                         "Индексация уже запущена."),
                 HttpStatus.BAD_REQUEST);
@@ -33,7 +33,7 @@ public class GeneralRequest {
 
     public ResponseEntity<Object> indexingNotRunning() {
         return new ResponseEntity<>(
-                new GeneralRequest(
+                new Request(
                         false,
                         "Индексация не запущена."),
                 HttpStatus.BAD_REQUEST);
@@ -42,7 +42,7 @@ public class GeneralRequest {
 
     public ResponseEntity<Object> indexPageFailed() {
         return new ResponseEntity<>(
-                new GeneralRequest(false,
+                new Request(false,
                         "Данная страница находится за пределами сайтов,  " +
                                 "указанных в конфигурационном файле!"),
                 HttpStatus.NOT_FOUND);

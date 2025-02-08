@@ -8,23 +8,24 @@ indexing-settings:
     - url: https://upakmarket.com
       name: upakmarket.com
 
-server:
-  port: 8081
+
 
 spring:
-  datasource:
-    username: roma2
-    password: roma2
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+  main:
+    allow-circular-references: true
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      SET: FOREIGN_KEY_CHECKS=0;
-      ddl-auto: create
-    show-sql: true
-
+      ddl-auto: create-drop # Эта строка удаляет и пересоздает схему при каждом запуске
+    generate-ddl: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/app_db
+    username: search
+    password: search
+    hikari:
+      schema: app_schema
+      connection-init-sql: create schema if not exists app_schema
+      connection-timeout: 10000
+      show-sql: true
 
 
 

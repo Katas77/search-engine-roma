@@ -11,8 +11,9 @@ import javax.persistence.*;
 public class Indexes {
 
     @Id
+    @SequenceGenerator(name = "your_sequence_name", sequenceName = "your_sequence_name")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "your_sequence_name")
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

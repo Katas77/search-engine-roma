@@ -15,6 +15,42 @@ import java.util.Set;
 @Entity
 @Table(name = "page", indexes = @Index(name = "path_siteId_index", columnList = "path, site_id", unique = true))
 public class Page {
+    @Id
+    @SequenceGenerator(name = "page_seq_gen", sequenceName = "page_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "page_seq_gen")
+    @Column(name = "id", nullable = false)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Website.class, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
+    @JoinColumn(foreignKey = @ForeignKey(name = "site_page_FK"),
+            columnDefinition = "Integer",
+            referencedColumnName = "id",
+            name = "site_id",
+            nullable = false,
+            updatable = false)
+    private Website siteEntity;
+
+    @NotNull
+    @Column(name = "path", length = 255, nullable = false)
+    private String path;
+
+    @Column(nullable = false)
+    private int code;
+
+    @NotNull
+    @Column(length = 4000, nullable = false)
+    private String content;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "search_index",
+            joinColumns = {@JoinColumn(name = "page_id")},
+            inverseJoinColumns = {@JoinColumn(name = "lemma_id")})
+    private Set<Lemma> lemmaEntities = new HashSet<>();
+
+
+
     public Page() {
     }
 
@@ -25,34 +61,7 @@ public class Page {
         this.content = content;
     }
 
-    @Id
-    @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY, targetEntity = Website.class, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
-    @OnDelete(action = OnDeleteAction.NO_ACTION)
-    @JoinColumn(foreignKey = @ForeignKey(name = "site_page_FK"), columnDefinition = "Integer",
-            referencedColumnName = "id", name = "site_id", nullable = false, updatable = false)
-    private Website siteEntity;
-
-    @NotNull
-    @Column(name = "path", columnDefinition = "VARCHAR(255) CHARACTER SET utf8")
-    private String path;
-
-    @Column(nullable = false)
-    private int code;
-
-    @NotNull
-    @Column(length = 4000, columnDefinition = "mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", nullable = false)
-    private String content;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "search_index",
-            joinColumns = {@JoinColumn(name = "page_id")},
-            inverseJoinColumns = {@JoinColumn(name = "lemma_id")})
-    private Set<Lemma> lemmaEntities = new HashSet<>();
 
 
 }

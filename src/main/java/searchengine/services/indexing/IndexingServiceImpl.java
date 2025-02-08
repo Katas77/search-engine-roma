@@ -9,7 +9,7 @@ import searchengine.config.SitesList;
 import searchengine.dto.forAll.Request;
 import searchengine.model.Website;
 import searchengine.repositories.SiteRepository;
-import searchengine.utils.indexing.WebsiteSaveInRepository;
+import searchengine.utils.indexing.WebsiteSaveService;
 import searchengine.utils.indexing.IndexingTools;
 
 import java.util.*;
@@ -23,7 +23,7 @@ import java.util.*;
 
 public class IndexingServiceImpl implements IndexingService {
 
-    private final WebsiteSaveInRepository inRepository;
+    private final WebsiteSaveService inRepository;
     private final IndexingTools tools;
     public final SiteRepository siteRepository;
     private final SitesList sitesList;

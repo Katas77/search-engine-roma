@@ -86,7 +86,6 @@ public class ApiController {
         searchData.add(new SearchData("-", "", "", "Данные еще не внесены в таблицу  «search_index», повторите запрос позже ", "", 1));
         return indexRepository.findAll().size() < 25;
 
-
     }
 
 

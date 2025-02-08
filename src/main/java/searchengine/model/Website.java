@@ -24,32 +24,33 @@ public class Website {
 
     public Website() {
     }
-
     @Id
+    @SequenceGenerator(name = "website_seq_gen", sequenceName = "website_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "website_seq_gen")
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    @Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
+    @Column(name = "status_time", nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime statusTime;
 
     @Column(name = "last_error", columnDefinition = "TEXT")
     private String lastError;
 
-    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
+    @Column(name = "url", length = 255, nullable = false)
     private String url;
 
-    @Column(columnDefinition = "VARCHAR(255)", nullable = false)
+    @Column(name = "name", length = 255, nullable = false)
     private String name;
 
     @OneToMany(mappedBy = "siteEntity", cascade = CascadeType.REMOVE)
     private Set<Page> pageEntities;
 
     @OneToMany(mappedBy = "siteEntity", cascade = CascadeType.REMOVE)
-    private Set<Lemma> lemmaEntity;
+    private Set<Lemma> lemmaEntities;
+
 
 }

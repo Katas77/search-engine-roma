@@ -30,22 +30,24 @@ import static searchengine.utils.indexing.StringPool.*;
 @RequiredArgsConstructor
 public class RecursiveMake extends RecursiveAction {
     public static volatile Boolean isActive = true;
-    public String siteUrl;
+    private final String siteUrl;
     private final String currentUrl;
     private String parentPath;
     private Document document;
     private Page pageEntity;
     private final Website siteEntity;
-    private CopyOnWriteArraySet<String> childLinks;
+    private Set<String> childLinks;
     private final PageRepository pageRepository;
     private final BlockingQueue<Page> outcomeQueue;
-    public static final ArrayList<String> html = new ArrayList<>();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
+    private final Map<String, Boolean> links = new HashMap<>();
+    private final Map<String, Boolean> pages404 = new HashMap<>();
+    private final Map<String, Boolean> savedPaths = new HashMap<>();
 
     public RecursiveMake(String currentUrl,
                          Website siteEntity,
-                         BlockingQueue<Page> outcomeQueue, PageRepository pageRepository, String siteUrl) {
+                         BlockingQueue<Page> outcomeQueue,
+                         PageRepository pageRepository,
+                         String siteUrl) {
         this.siteEntity = siteEntity;
         this.outcomeQueue = outcomeQueue;
         this.currentUrl = currentUrl;
@@ -55,14 +57,17 @@ public class RecursiveMake extends RecursiveAction {
 
     @Override
     protected void compute() {
-        if (!isActive)
+        String data="";
+        if (!isActive) {
             return;
-        lock.readLock().lock();
-        if (!links.containsKey(currentUrl))
+        }
+
+        if (!links.containsKey(currentUrl)) {
             internVisitedLinks(currentUrl);
-        lock.readLock().unlock();
+        }
+
         try {
-            sleep(150);
+            Thread.sleep(150);
             Connection.Response response = Jsoup.connect(currentUrl)
                     .ignoreHttpErrors(true)
                     .userAgent(new UserAgent().userAgentGet())
@@ -71,79 +76,66 @@ public class RecursiveMake extends RecursiveAction {
             document = response.parse();
             parentPath = "/" + currentUrl.replace(siteUrl, "");
             cleanHtmlContent();
-            pageEntity = new Page(siteEntity, response.statusCode(), document.html(), parentPath);
-        } catch (IOException | UncheckedIOException exception) {
-            System.out.println(exception.getMessage());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            if (document.html().length() > 4000) {
+               data = document.html().substring(0, 3999);
+            }
+            pageEntity = new Page(siteEntity, response.statusCode(), data, parentPath);
+        } catch (IOException | InterruptedException e) {
+            log.error("Error parsing URL {}: {}", currentUrl, e.getMessage());
         }
+
         saveExtractedPage();
+
         final Elements elements = document.select("a[href]");
         if (!elements.isEmpty()) {
-            childLinks = getChildLinks(currentUrl, elements);
+            childLinks = getChildLinks(elements);
         }
+
         forkAndJoinTasks();
     }
 
-    public CopyOnWriteArraySet<String> getChildLinks(String url, Elements elements) {
-        CopyOnWriteArraySet<String> newChildLinks = new CopyOnWriteArraySet<>();
+    private Set<String> getChildLinks(Elements elements) {
+        Set<String> newChildLinks = new HashSet<>();
         for (Element element : elements) {
             final String href = wwwAdd(getHrefFromElement(element).toLowerCase());
-            lock.readLock().lock();
-            if (links.containsKey(href))
-                continue;
-            else if (urlIsValidToProcess(url, newChildLinks, href)) {
-                addHrefToOutcomeValue(newChildLinks, href);
+            if (urlIsValidToProcess(newChildLinks, href)) {
+                newChildLinks.add(href);
             }
-            lock.readLock().unlock();
         }
         return newChildLinks;
     }
 
-    private void addHrefToOutcomeValue(CopyOnWriteArraySet<String> newChildLinks, String href) {
-        if (!links.containsKey(href)
-                && !pages404.containsKey(href)
-                && !savedPaths.containsKey(href)) {
-            newChildLinks.add(href);
-        }
-    }
-
-    private boolean urlIsValidToProcess(String sourceUrl, CopyOnWriteArraySet<String> newChildLinks, String extractedHref) {
-        return isImageAndDoc(sourceUrl)
+    private boolean urlIsValidToProcess(Set<String> newChildLinks, String extractedHref) {
+        return isImageAndDoc(extractedHref)
                 && !newChildLinks.contains(extractedHref)
                 && isImageAndDoc(extractedHref)
-                && nameSiteContains(sourceUrl);
-
+                && nameSiteContains(extractedHref);
     }
 
     private void cleanHtmlContent() {
         final String oldTitle = document.title();
         final Safelist safelist = Safelist.relaxed().preserveRelativeLinks(true);
         final Cleaner cleaner = new Cleaner(safelist);
-        boolean isValid = cleaner.isValid(document);
-        if (!isValid) {
-            document = cleaner.clean(document);
-            document.title(oldTitle);
-        }
+        document = cleaner.clean(document);
+        document.title(oldTitle);
     }
 
     private synchronized void saveExtractedPage() {
-        lock.readLock().lock();
         if (!savedPaths.containsKey(parentPath)) {
             try {
                 pageRepository.save(pageEntity);
                 internSavedPath(pageEntity.getPath());
                 putPageEntityToQueue();
             } catch (DataIntegrityViolationException exception) {
-                exception.getMessage();
+                log.error("Error saving page entity: {}", exception.getMessage());
             }
         }
-        lock.readLock().unlock();
     }
 
     private void forkAndJoinTasks() {
-        if (!isActive)
+        if (!isActive) {
             return;
+        }
 
         List<RecursiveMake> subTasks = new LinkedList<>();
         for (String childLink : childLinks) {
@@ -156,30 +148,32 @@ public class RecursiveMake extends RecursiveAction {
                     subTasks.add(action);
                 } catch (NullPointerException ignored) {
                 } catch (DataIntegrityViolationException e) {
-                    e.getMessage();
+                    log.error("Error creating RecursiveMake task: {}", e.getMessage());
                 }
             }
         }
 
-        for (RecursiveMake task : subTasks) task.join();
+        for (RecursiveMake task : subTasks) {
+            task.join();
+        }
     }
 
-
-    public String getHrefFromElement(Element element) {
+    private String getHrefFromElement(Element element) {
         return (element != null) ? element.absUrl("href") : "";
     }
 
     private void putPageEntityToQueue() {
         try {
             while (true) {
-                if (outcomeQueue.remainingCapacity() < 5 && isActive)
-                    sleep(50);
-                else
+                if (outcomeQueue.remainingCapacity() < 5 && isActive) {
+                    Thread.sleep(50);
+                } else {
                     break;
+                }
             }
             outcomeQueue.put(pageEntity);
         } catch (InterruptedException ex) {
-            System.out.println(ex.getMessage());
+            log.error("Error putting page entity to queue: {}", ex.getMessage());
         }
     }
 
@@ -197,15 +191,27 @@ public class RecursiveMake extends RecursiveAction {
                 && !link.contains("?_ga");
     }
 
-    public String wwwAdd(String url) {
+    private String wwwAdd(String url) {
         String newUrl = "";
         if (!url.startsWith("https://www.")) {
             newUrl = url.replace("https://", "https://www.");
-        } else newUrl = url;
+        } else {
+            newUrl = url;
+        }
         return newUrl;
     }
 
-    public boolean nameSiteContains(String href) {
-        return href.toLowerCase().contains("skillbox") || href.toLowerCase().contains("playback") || href.toLowerCase().contains("upakmarket");
+    private boolean nameSiteContains(String href) {
+        return href.toLowerCase().contains("skillbox") ||
+                href.toLowerCase().contains("playback") ||
+                href.toLowerCase().contains("upakmarket");
+    }
+
+    private void internVisitedLinks(String url) {
+        links.put(url, true);
+    }
+
+    private void internSavedPath(String path) {
+        savedPaths.put(path, true);
     }
 }

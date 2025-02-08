@@ -14,13 +14,11 @@ import searchengine.utils.indexing.IndexingTools;
 
 import java.util.*;
 
-
 @Slf4j
 @Setter
 @Getter
 @Service
 @RequiredArgsConstructor
-
 public class IndexingServiceImpl implements IndexingService {
 
     private final WebsiteSaveService inRepository;
@@ -29,37 +27,69 @@ public class IndexingServiceImpl implements IndexingService {
     private final SitesList sitesList;
     public static String oneUrl = "";
 
-
+    /**
+     * Метод запуска индексации сайтов.
+     *
+     * @return ответ с результатом выполнения
+     */
     @Override
     public ResponseEntity<Object> indexingStart() {
-        log.warn("--метод startIndexing запущен--");
+        log.info("--- Start indexing websites ---");
+
         List<Thread> threadList = new ArrayList<>();
         List<Website> websiteList = inRepository.listSitesEntity();
-        websiteList.forEach(siteEntity -> threadList.add(new Thread(() -> tools.startTreadsIndexing(siteEntity), "Thread - " + siteEntity.getName())));
-        threadList.forEach(Thread::start);
+
+        for (Website siteEntity : websiteList) {
+            Thread thread = new Thread(() -> tools.startThreadsIndexing(siteEntity),
+                    "Thread - " + siteEntity.getName());
+            threadList.add(thread);
+            thread.start();
+        }
+
+        log.debug("Started {} threads for indexing.", threadList.size());
         return new Request().statusOk();
     }
 
+    /**
+     * Метод проверки конфигурации для индексации страницы.
+     *
+     * @param url URL страницы для индексации
+     * @return ответ с результатом проверки
+     */
     @Override
     public ResponseEntity<Object> indexingPageStart(String url) {
-        log.warn("--метод indexingPageStart запущен--");
-        oneUrl = url;
-        if (!isConfigurations(url)) {
-            oneUrl = "";
-            return new Request().indexPageFailed();
-        } else
-            return new Request().statusOk();
+        log.info("--- Check configuration for indexing page: {} ---", url);
 
+        if (!isConfigurationValid(url)) {
+            log.error("Invalid configuration for URL: {}", url);
+            return new Request().indexPageFailed();
+        }
+
+        log.info("Configuration valid for URL: {}. Starting indexing...", url);
+        oneUrl = url;  // Сохраняем URL в статическом поле
+        return new Request().statusOk();
     }
 
+    /**
+     * Метод остановки процесса индексации.
+     *
+     * @return ответ с результатом выполнения
+     */
     @Override
     public ResponseEntity<Object> indexingStop() {
-        log.warn("--stopIndexing --");
+        log.info("--- Stopping indexing process ---");
+
         tools.setIsActive(false);
         return new Request().statusOk();
     }
 
-    public boolean isConfigurations(String url) {
+    /**
+     * Проверяет, является ли URL допустимым для индексации.
+     *
+     * @param url URL для проверки
+     * @return true, если URL допустимый, иначе false
+     */
+    private boolean isConfigurationValid(String url) {
         for (Site site : sitesList.getSites()) {
             if (url.startsWith(site.getUrl())) {
                 return true;
@@ -68,4 +98,3 @@ public class IndexingServiceImpl implements IndexingService {
         return false;
     }
 }
-

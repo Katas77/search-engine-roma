@@ -31,7 +31,7 @@ public class IndexingTools {
 
     private boolean update = true;
     private static final int CORE_COUNT = Runtime.getRuntime().availableProcessors();
-    private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(1_00);
+    private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(100);
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
@@ -39,26 +39,27 @@ public class IndexingTools {
     private final LemmaTools lemmaService;
     private ForkJoinPool joinPool = new ForkJoinPool(CORE_COUNT);
 
-    public  void startTreadsIndexing(Website siteEntity) {
+    public void startThreadsIndexing(Website siteEntity) {
         log.warn("Full indexing will be started now");
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
+
+        // Запускаем рекурсивную задачу для обработки страниц сайта
         RecursiveThreadBody(joinPool, siteEntity, latch);
-        Thread thread = new Thread(() -> stopIndexing(siteEntity));
-        thread.start();
+
+        // Запускаем обработку лемм
+        lemmasThreadBody(siteEntity, latch);
+
         try {
-            lemmasThreadBody(siteEntity, latch);
-        } catch (NullPointerException ignored) {
-            System.out.println("Ignoring the exception");
-        }
-        try {
-            latch.await();
+            latch.await(); // Ожидаем завершения обеих задач
         } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
+            log.error("InterruptedException occurred during await(): {}", e.getMessage());
         }
-        joinPool.shutdownNow();
+
+        joinPool.shutdownNow(); // Завершаем работу пула потоков
+
         if (update) {
-            updateEntity(siteEntity);
+            updateEntity(siteEntity); // Обновляем сущность сайта
         }
     }
 
@@ -66,38 +67,44 @@ public class IndexingTools {
         lemmaService.setQueue(blockingQueue);
         lemmaService.setCycle(false);
         lemmaService.setSiteEntity(siteEntity);
+
         try {
             lemmaService.startCollecting();
-        } catch (DataIntegrityViolationException | ConcurrentModificationException ignored) {
-            System.out.println("Ignoring the exception");
+        } catch (DataIntegrityViolationException | ConcurrentModificationException e) {
+            log.error("Exception occurred during lemma processing: {}", e.getMessage());
         }
+
         latch.countDown();
-        log.warn("thread finished, latch =  " + latch.getCount());
+        log.warn("Lemmas thread finished, latch = {}", latch.getCount());
     }
 
-    private void RecursiveThreadBody(@NotNull ForkJoinPool pool, Website siteEntity, CountDownLatch latch) {
+    private void RecursiveThreadBody(ForkJoinPool pool, Website siteEntity, CountDownLatch latch) {
         try {
             RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
             pool.invoke(action);
-        } catch (NullPointerException | ConcurrentModificationException | RejectedExecutionException ignored) {
+        } catch (NullPointerException | ConcurrentModificationException | RejectedExecutionException e) {
+            log.error("Exception occurred during recursive task execution: {}", e.getMessage());
         }
+
         lemmaService.setCycle(true);
         latch.countDown();
-        log.info(pageRepository.countBySiteEntity(siteEntity) + " pages saved in DB-");
-        log.warn("thread finished, latch =  " + latch.getCount());
+        log.info("{} pages saved in DB.", pageRepository.countBySiteEntity(siteEntity));
+        log.warn("Recursive thread finished, latch = {}", latch.getCount());
     }
 
     public void setIsActive(boolean value) {
         update = false;
         stopUpdate();
+
         try {
-            log.warn("---остановлено пользователем----");
+            log.warn("---stopped by user----");
             Thread.sleep(1_000);
         } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
+            log.error("InterruptedException occurred during sleep: {}", e.getMessage());
         } finally {
             joinPool.shutdownNow();
         }
+
         lemmaService.setOffOn(value);
         RecursiveMake.isActive = value;
     }
@@ -108,36 +115,43 @@ public class IndexingTools {
         siteEntity.setStatusTime(LocalDateTime.now());
         int countPages = pageRepository.countBySiteEntity(siteEntity);
         setStatus(countPages, siteEntity);
-        log.warn("Status of site " + siteEntity.getName()
-                + " set to " + siteEntity.getStatus().toString()
-                + ", error set to " + siteEntity.getLastError());
-        if (countPages == 1 & siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl)) {
+        log.warn("Status of site {} set to {}, error set to {}",
+                siteEntity.getName(),
+                siteEntity.getStatus().toString(),
+                siteEntity.getLastError());
+
+        if (countPages == 1 && siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl)) {
             siteEntity.setStatus(Status.INDEXED);
             siteEntity.setLastError("");
         }
+
         siteRepository.save(siteEntity);
         StringPool.clearAll();
     }
 
     private void logInfo(Website siteEntity) {
-        log.info(siteEntity.getName() + " with URL " + siteEntity.getUrl() + " started indexing");
-        log.info(pageRepository.count() + " pages, "
-                + lemmaRepository.count() + " lemmas, "
-                + indexRepository.count() + " indexes in table");
+        log.info("{} with URL {} started indexing",
+                siteEntity.getName(),
+                siteEntity.getUrl());
+        log.info("{} pages, {} lemmas, {} indexes in table",
+                pageRepository.count(),
+                lemmaRepository.count(),
+                indexRepository.count());
     }
-
 
     public void stopUpdate() {
         List<Website> siteEntities = siteRepository.findAll();
         for (Website siteEntity : siteEntities) {
-            if (siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl) | isIndexing()) {
+            if (siteEntity.getUrl().equals(IndexingServiceImpl.oneUrl) || isIndexing()) {
                 continue;
             }
+
             int countPages = pageRepository.countBySiteEntity(siteEntity);
             if (countPages > 1) {
-                siteEntity.setLastError("Индексация остановлена пользователем");
+                siteEntity.setLastError("Индексирование было остановлено пользователем");
                 siteEntity.setStatus(Status.FAILED);
             }
+
             setStatus(countPages, siteEntity);
             siteRepository.save(siteEntity);
         }
@@ -147,35 +161,39 @@ public class IndexingTools {
         switch (countPages) {
             case 0 -> {
                 siteEntity.setStatus(Status.FAILED);
-                siteEntity.setLastError("Ошибка индексации: Не возможно  установить соединение с запрошенным веб - сайтом.");
+                siteEntity.setLastError("Ошибка индексирования: невозможно установить соединение с запрашиваемым веб-сайтом.");
             }
             case 1 -> {
                 siteEntity.setStatus(Status.FAILED);
-                siteEntity.setLastError("Ошибка индексации: Произошла длительная задержка при переходе по гиперссылкам  веб-страницы.");
+                siteEntity.setLastError("Ошибка индексирования: произошла длительная задержка при переходе по ссылкам страницы.");
             }
         }
     }
 
     private void stopIndexing(Website siteEntity) {
-        int timeSleep = 8_000;
+        int timeSleep = 8000;
         if (siteEntity.getUrl().contains("https://www.playback.ru")) {
-            timeSleep = 11_000;
+            timeSleep = 11000;
         }
+
         while (true) {
             try {
-                Thread.sleep(7_000);
+                Thread.sleep(7000);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                log.error("InterruptedException occurred during sleep: {}", e.getMessage());
             }
+
             if (!update) {
                 return;
             }
+
             int countPages1 = pageRepository.countBySiteEntity(siteEntity);
             try {
                 Thread.sleep(timeSleep);
             } catch (InterruptedException e) {
-                System.out.println(e.getMessage());
+                log.error("InterruptedException occurred during sleep: {}", e.getMessage());
             }
+
             int countPages2 = pageRepository.countBySiteEntity(siteEntity);
             if (countPages1 == countPages2) {
                 joinPool.shutdownNow();
@@ -190,7 +208,4 @@ public class IndexingTools {
     private boolean isIndexing() {
         return siteRepository.existsByStatus(Status.INDEXED);
     }
-
 }
-
-

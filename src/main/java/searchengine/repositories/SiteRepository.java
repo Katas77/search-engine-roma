@@ -5,11 +5,13 @@ import org.springframework.stereotype.Repository;
 import searchengine.model.Website;
 import searchengine.model.Status;
 
+import java.util.Optional;
+
 
 @Repository
 public interface SiteRepository extends JpaRepository<Website, Long> {
 
-    Website findByUrl(String url);
+   Optional<Website> findByUrl(String url);
 
     boolean existsByStatus(Status status);
 

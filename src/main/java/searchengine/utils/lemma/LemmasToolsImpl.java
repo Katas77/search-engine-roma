@@ -25,10 +25,11 @@ import static java.lang.Thread.sleep;
 @Service
 @RequiredArgsConstructor
 public class LemmasToolsImpl implements LemmaTools {
-    private Boolean offOn = true;
-    private Integer countPages = 0;
-    private Integer countLemmas = 0;
-    private Integer countIndexes = 0;
+    @Setter
+    private boolean offOn = true;
+    private int countPages = 0;
+    private int countLemmas = 0;
+    private int countIndexes = 0;
     private Website siteEntity;
     private Indexes indexEntity;
     private volatile boolean cycle = false;
@@ -50,21 +51,21 @@ public class LemmasToolsImpl implements LemmaTools {
             }
             Page pageEntity = queue.poll();
             if (pageEntity != null & countPag != 0) {
-                this.collectedLemmas = lemmaFinder.collectLemmas
-                        (Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
+                this.collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
                 for (String lemma : this.collectedLemmas.keySet()) {
-                    if (collectedLemmas.get(lemma) == null) {
-                        collectedLemmas.remove(lemma);
+                    if (this.collectedLemmas.get(lemma) == null) {
+                        this.collectedLemmas.remove(lemma);
                     }
                 }
                 for (String lemma : this.collectedLemmas.keySet()) {
-                    if (collectedLemmas.get(lemma) != null) {
-                        int rank = collectedLemmas.get(lemma);
+                    if (this.collectedLemmas.get(lemma) != null) {
+                        int rank = this.collectedLemmas.get(lemma);
                         Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
                         this.indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
                         countIndexes++;
-                    } else
-                        throw new NullPointerException("collectedLemmas.get(lemma) must not be null");
+                    } else {
+                        log.error("collectedLemmas.get(lemma) must not be null");
+                    }
                 }
             } else {
                 sleeping(10, "Error sleeping while waiting for an item in line");
@@ -92,33 +93,29 @@ public class LemmasToolsImpl implements LemmaTools {
 
     private synchronized void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        this.indexRepository.saveAll(this.indexEntities);
-        sleeping(50, " sleeping after saving lemmas");
-        log.warn("Saving index lasts -  " + (System.currentTimeMillis() - idxSave) + " ms");
+        this.indexRepository.saveAll(indexEntities);
+        sleeping(50, "sleeping after saving lemmas");
+        log.warn("Saving index lasts - " + (System.currentTimeMillis() - idxSave) + " ms");
         this.indexEntities.clear();
     }
 
     private synchronized void savingLemmas() {
         long lemmaSave = System.currentTimeMillis();
         lemmaRepository.saveAll(lemmaEntities.values());
-        sleeping(50, "Error sleeping after saving lemmas");
+        sleeping(50, "sleeping after saving lemmas");
         log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
         lemmaEntities.clear();
     }
 
     private String logAboutEachSite() {
-        return countLemmas + " lemmas and "
-                + countIndexes + " indexes saved "
-                + "in DB from site with url "
-                + currentThread().getName();
+        return countLemmas + " lemmas and " +
+                countIndexes + " indexes saved " +
+                "in DB from site with url " +
+                currentThread().getName();
     }
 
     public Boolean allowed() {
         return !cycle | queue.iterator().hasNext();
-    }
-
-    public void setOffOn(boolean value) {
-        offOn = value;
     }
 
     private static void sleeping(int millis, String s) {

@@ -15,7 +15,7 @@ import java.util.List;
 @Transactional
 @Repository
 public interface IndexRepository extends JpaRepository<Indexes, Long> {
-    Integer countByPageEntity(Page pageEntity);
+   // Integer countByPageEntity(Page pageEntity);
 
     @Query(value = "SELECT i.* FROM search_index i WHERE i.lemma_id IN :lemmas AND i.page_id IN :pages",
             nativeQuery = true)

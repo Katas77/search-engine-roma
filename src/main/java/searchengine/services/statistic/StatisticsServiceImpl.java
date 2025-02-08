@@ -16,16 +16,11 @@ import searchengine.repositories.SiteRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-    String[] statuses = {"INDEXED", "FAILED", "INDEXING"};
-    String[] errors = {
-            "Ошибка индексации: главная страница сайта не доступна",
-            "Ошибка индексации: сайт не доступен",
-            ""
-    };
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final SiteRepository siteRepository;
@@ -40,23 +35,22 @@ public class StatisticsServiceImpl implements StatisticsService {
         response.setStatistics(data);
         response.setResult(true);
         return response;
-
     }
 
     private TotalStatistics getTotal() {
-        long sites = siteRepository.count();
-        if (siteRepository.count() == 0) {
-            sites = this.sites.getSites().size();
+        long sitesCount = siteRepository.count();
+        if (sitesCount == 0) {
+            sitesCount = sites.getSites().size();
         }
-        long pages = pageRepository.count();
-        long lemmas = lemmaRepository.count();
-        return new TotalStatistics((int) sites, (int) pages, (int) lemmas, true);
+        long pagesCount = pageRepository.count();
+        long lemmasCount = lemmaRepository.count();
+        return new TotalStatistics(Math.toIntExact(sitesCount), Math.toIntExact(pagesCount), Math.toIntExact(lemmasCount), true);
     }
 
     private DetailedStatisticsItem getDetailed(Website site) {
         String url = "https://www." + site.getName();
         String name = site.getName();
-        String status = site.getStatus().toString();
+        String status = site.getStatus().name();
         LocalDateTime statusTime = site.getStatusTime();
         String error = site.getLastError();
         int pages = pageRepository.countBySiteEntity(site);
@@ -65,13 +59,8 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private List<DetailedStatisticsItem> getStatisticsData() {
-        List<Website> sites = siteRepository.findAll();
-        List<DetailedStatisticsItem> result = new ArrayList<>();
-        for (Website site : sites) {
-            DetailedStatisticsItem item = getDetailed(site);
-            result.add(item);
-        }
-        return result;
+        return siteRepository.findAll().stream()
+                .map(this::getDetailed)
+                .collect(Collectors.toList());
     }
-
 }

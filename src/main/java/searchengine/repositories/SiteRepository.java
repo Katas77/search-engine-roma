@@ -10,9 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface SiteRepository extends JpaRepository<Website, Long> {
-
    Optional<Website> findByUrl(String url);
-
     boolean existsByStatus(Status status);
 
 

@@ -16,7 +16,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.dto.forAll.Request;
+import searchengine.dto.response.DataTransmission;
 import searchengine.utils.indexing.JsoupConnect;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
@@ -41,8 +41,10 @@ public class SearchServiceImpl implements SearchService {
         List<SearchData> searchData;
         if (!url.isEmpty()) {
             if (siteRepository.findByUrl(url).isEmpty()) {
-                return new Request().indexPageFailed();
-            } else {searchData = onePageSearch(query, url);}
+                return new DataTransmission().indexPageFailed();
+            } else {
+                searchData = onePageSearch(query, url);
+            }
         } else {
             searchData = searchThroughAllSites(query);
         }
@@ -51,7 +53,8 @@ public class SearchServiceImpl implements SearchService {
             return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
         }
         searchData.forEach(data -> {
-            log.debug("Найдено: {}", data.getUri());});
+            log.debug("Найдено: {}", data.getUri());
+        });
         return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)), HttpStatus.OK);
     }
 

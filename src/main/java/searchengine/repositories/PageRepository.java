@@ -16,12 +16,10 @@ import java.util.Optional;
 @Transactional
 @Repository
 public interface PageRepository extends JpaRepository<Page, Long> {
-
     Optional<Page> findByPathAndSiteEntity(String path, Website siteEntity);
     @Query(value = "SELECT p.* FROM page p JOIN search_index i ON p.id = i.page_id WHERE i.lemma_id IN :lemmas",
             nativeQuery = true)
     List<Page> findByLemmas(@Param("lemmas") Collection<Lemma> lemmas);
-
     Integer countBySiteEntity(Website siteEntity);
 
 

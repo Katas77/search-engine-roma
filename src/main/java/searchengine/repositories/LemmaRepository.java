@@ -13,9 +13,7 @@ import java.util.List;
 @Transactional
 @Repository
 public interface LemmaRepository extends JpaRepository<Lemma, Long> {
-
     Integer countBySiteEntity(Website siteEntity);
-
     @Query(value = "SELECT l.* FROM Lemma l WHERE l.lemma IN :lemmas AND l.site_id = :site", nativeQuery = true)
     List<Lemma> findLemmasBySite(@Param("lemmas") List<String> lemmas, @Param("site") Website site);
 }

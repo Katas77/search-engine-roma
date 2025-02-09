@@ -60,7 +60,7 @@ public class LemmasToolsImpl implements LemmaTools {
                     indexEntities.add(index);
                     countIndexes++;
                     log.info(Colors.ANSI_BLUE+"Adding index to collection: {}"+Colors.ANSI_RESET, index);
-                    log.info("Current size of indexEntities: {}", indexEntities.size());});
+                });
         }
         savingLemmas();
         savingIndexes();
@@ -107,7 +107,7 @@ public class LemmasToolsImpl implements LemmaTools {
     private String logAboutEachSite() {
         return Colors.ANSI_PURPLE+countLemmas + " lemmas and " +
                 countIndexes + " indexes saved " +
-                "in DB from site with url "+Colors.ANSI_RESET;
+                "in DB from site with url. Тепеперь можете осуществлять быстрый поиск нужной информации"+Colors.ANSI_RESET;
     }
 
     private void sleeping(int millis, String s) {

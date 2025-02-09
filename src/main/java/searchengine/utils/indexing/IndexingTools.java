@@ -53,7 +53,7 @@ public class IndexingTools {
     private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(100);
 
     public void startThreadsIndexing(Website siteEntity) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(2);
+        CountDownLatch latch = new CountDownLatch(2);//будет ждать завершения двух операций перед тем, как позволить основному потоку продолжить выполнение.
         logInfo(siteEntity);
         Runnable runnableLemmas= () -> {
             try {
@@ -69,7 +69,7 @@ public class IndexingTools {
         new Thread(runnableLemmas).start();
         new Thread(runnableRecursive).start();
         try {
-            latch.await();
+            latch.await();//await(), блокируется до тех пор, пока все операции не завершатся и счётчик не достигнет нуля
         } catch (InterruptedException e) {
             log.error("InterruptedException occurred during await(): {}", e.toString());
         }
@@ -89,7 +89,7 @@ public class IndexingTools {
         } catch (DataIntegrityViolationException | ConcurrentModificationException e) {
             log.error("Exception occurred during lemma processing: {}", e.toString());
         }
-        latch.countDown();
+        latch.countDown();//await(), блокируется до тех пор, пока все операции не завершатся и счётчик не достигнет нуля.
         log.warn("Lemmas thread finished, latch = {}", latch.getCount());
     }
 
@@ -100,7 +100,7 @@ public class IndexingTools {
         } catch (Exception e) {
             log.error("Exception occurred during recursive task execution: {}", e.toString());
         }
-        latch.countDown();
+        latch.countDown();//метод countDown(). Этот метод уменьшает значение счётчика на единицу.
         log.info("{} pages saved in DB.", pageRepository.countBySiteEntity(siteEntity));
         log.warn("Recursive thread finished, latch = {}", latch.getCount());
     }

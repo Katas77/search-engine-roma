@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
+import searchengine.color.Colors;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -14,6 +15,8 @@ import searchengine.repositories.PageRepository;
 import searchengine.utils.searchandLemma.LemmaFinder;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 
@@ -22,7 +25,7 @@ import java.util.concurrent.BlockingQueue;
 @RequiredArgsConstructor
 @Getter
 public class LemmasToolsImpl implements LemmaTools {
-    @Setter
+    private Lock lock = new ReentrantLock();
     private boolean offOn = true;
     private int countPages = 0;
     private int countLemmas = 0;
@@ -46,15 +49,23 @@ public class LemmasToolsImpl implements LemmaTools {
                 clearSaving();
                 return;
             }
+            lock.lock();
             Page pageEntity = queue.poll();
-            if (pageEntity != null && countPag != 0) {
+            if (pageEntity == null) {
+                continue;
+            }
+            if (countPag != 0) {
                 collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
-                collectedLemmas.values().removeIf(rank -> rank == null);
+                collectedLemmas.values().removeIf(Objects::isNull);
                 collectedLemmas.forEach((lemma, rank) -> {
                     Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
-                    indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
+                   Indexes index= new Indexes(pageEntity, lemmaEntity, rank);
+                    indexEntities.add(index);
                     countIndexes++;
+                    log.info(Colors.ANSI_BLUE+"Adding index to collection: {}"+Colors.ANSI_RESET, index);
+                    log.info("Current size of indexEntities: {}", indexEntities.size());
                 });
+                lock.unlock();
             } else {
                 sleeping(10, "Error sleeping while waiting for an item in line");
             }
@@ -80,25 +91,30 @@ public class LemmasToolsImpl implements LemmaTools {
 
     private synchronized void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        indexRepository.saveAll(indexEntities);
-        sleeping(50, "sleeping after saving lemmas");
+        try {
+            indexRepository.saveAll(indexEntities);
+        } finally {
+            indexEntities.clear();
+        }
         log.warn("Saving index lasts - " + (System.currentTimeMillis() - idxSave) + " ms");
-        indexEntities.clear();
     }
 
     private synchronized void savingLemmas() {
+        try {
+            lemmaRepository.saveAll(lemmaEntities.values());
+        } finally {
+            lemmaEntities.clear();
+        }
         long lemmaSave = System.currentTimeMillis();
-        lemmaRepository.saveAll(lemmaEntities.values());
         sleeping(50, "sleeping after saving lemmas");
         log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
-        lemmaEntities.clear();
+
     }
 
     private String logAboutEachSite() {
-        return countLemmas + " lemmas and " +
+        return Colors.ANSI_PURPLE+countLemmas + " lemmas and " +
                 countIndexes + " indexes saved " +
-                "in DB from site with url " +
-                Thread.currentThread().getName();
+                "in DB from site with url "+Colors.ANSI_RESET;
     }
 
     public Boolean allowed() {

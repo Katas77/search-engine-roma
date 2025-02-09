@@ -125,7 +125,7 @@ public class RecursiveMake extends RecursiveAction {
             } catch (DataIntegrityViolationException exception) {
                 log.error("Error saving page entity: {}", exception.getMessage());
             }
-            log.info(Colors.ANSI_GREEN + "Save Page  with UR: {}" + Colors.ANSI_RESET, pageEntity.getPath());
+            log.info(Colors.ANSI_GREEN + "Save Page  with UR: {} from site {}" + Colors.ANSI_RESET, pageEntity.getPath(),pageEntity.getSiteEntity().getName());
         }
     }
 

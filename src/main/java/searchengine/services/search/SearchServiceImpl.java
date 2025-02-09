@@ -6,6 +6,7 @@ import org.jsoup.Jsoup;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import searchengine.color.Colors;
 import searchengine.dto.searh.SearchData;
 import searchengine.dto.searh.SearchResponse;
 import searchengine.model.Indexes;
@@ -59,11 +60,7 @@ public class SearchServiceImpl implements SearchService {
                     HttpStatus.NOT_FOUND
             );
         }
-        log.debug("{} =  -  найдено :", searchData.size());
-        for (SearchData data : searchData) {
-            log.debug("{} - найдено:", query);
-            log.debug("{}", data.getUri());
-        }
+        log.debug(Colors.ANSI_YELLOW+"{} =  -  найдено :", searchData.size()+Colors.ANSI_RESET);
         return new ResponseEntity<>(
                 new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)),
                 HttpStatus.OK

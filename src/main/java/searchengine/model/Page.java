@@ -9,11 +9,10 @@ import org.hibernate.annotations.OnDeleteAction;
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-
 @Setter
 @Getter
 @Entity
-@Table(name = "page", indexes = @Index(name = "path_siteId_index", columnList = "path, site_id", unique = true))
+@Table(name = "page")
 public class Page {
     @Id
     @SequenceGenerator(name = "page_seq_gen", sequenceName = "page_seq", allocationSize = 1)
@@ -50,7 +49,6 @@ public class Page {
     private Set<Lemma> lemmaEntities = new HashSet<>();
 
 
-
     public Page() {
     }
 
@@ -60,8 +58,4 @@ public class Page {
         this.code = code;
         this.content = content;
     }
-
-
-
-
 }

@@ -17,9 +17,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
     @Bean
-    public static PasswordEncoder passwordEncoder(){
+    public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
@@ -28,18 +29,19 @@ public class SecurityConfig {
                 }).httpBasic(Customizer.withDefaults());
         return http.build();
     }
+
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
 
         UserDetails ramesh = User.builder()
                 .username("roma")
-                .password(passwordEncoder().encode("roma"))
+                .password(passwordEncoder().encode("roma22"))
                 .roles("USER")
                 .build();
 
         UserDetails admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder().encode("admin"))
+                .password(passwordEncoder().encode("admin11"))
                 .roles("ADMIN")
                 .build();
 

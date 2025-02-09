@@ -53,7 +53,7 @@ public class RecursiveMake extends RecursiveAction {
 
     @Override
     protected void compute() {
-        String data="";
+        String data = "";
         if (!isActive) {
             return;
         }
@@ -125,7 +125,7 @@ public class RecursiveMake extends RecursiveAction {
             } catch (DataIntegrityViolationException exception) {
                 log.error("Error saving page entity: {}", exception.getMessage());
             }
-            log.info(Colors.ANSI_GREEN+"Save Page  with UR: {}"+Colors.ANSI_RESET,  pageEntity.getPath());
+            log.info(Colors.ANSI_GREEN + "Save Page  with UR: {}" + Colors.ANSI_RESET, pageEntity.getPath());
         }
     }
 

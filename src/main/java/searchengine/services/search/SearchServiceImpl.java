@@ -32,7 +32,7 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final LemmaSearchTools lemmaFinderUtil;
-    private final JsoupConnect jsoupConnects;
+
 
 
     @Override

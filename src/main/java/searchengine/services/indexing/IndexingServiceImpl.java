@@ -32,7 +32,13 @@ public class IndexingServiceImpl implements IndexingService {
         List<Thread> threadList = new ArrayList<>();
         List<Website> websiteList = inRepository.listSitesEntity();
         for (Website siteEntity : websiteList) {
-            Thread thread = new Thread(() -> tools.startThreadsIndexing(siteEntity),
+            Thread thread = new Thread(() -> {
+                try {
+                    tools.startThreadsIndexing(siteEntity);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            },
                     "Thread - " + siteEntity.getName());
             threadList.add(thread);
             thread.start();

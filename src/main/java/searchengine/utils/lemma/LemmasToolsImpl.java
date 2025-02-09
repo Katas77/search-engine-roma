@@ -12,18 +12,15 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.utils.searchandLemma.LemmaFinder;
-
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 
-import static java.lang.Thread.currentThread;
-import static java.lang.Thread.sleep;
-
 @Slf4j
-@Getter
+
 @Setter
 @Service
 @RequiredArgsConstructor
+@Getter
 public class LemmasToolsImpl implements LemmaTools {
     @Setter
     private boolean offOn = true;
@@ -32,7 +29,7 @@ public class LemmasToolsImpl implements LemmaTools {
     private int countIndexes = 0;
     private Website siteEntity;
     private Indexes indexEntity;
-    private volatile boolean cycle = false;
+    public volatile boolean cycle = false;
     private BlockingQueue<Page> queue;
     private Set<Indexes> indexEntities = new HashSet<>();
     private Map<String, Integer> collectedLemmas = new HashMap<>();
@@ -50,30 +47,20 @@ public class LemmasToolsImpl implements LemmaTools {
                 return;
             }
             Page pageEntity = queue.poll();
-            if (pageEntity != null & countPag != 0) {
-                this.collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
-                for (String lemma : this.collectedLemmas.keySet()) {
-                    if (this.collectedLemmas.get(lemma) == null) {
-                        this.collectedLemmas.remove(lemma);
-                    }
-                }
-                for (String lemma : this.collectedLemmas.keySet()) {
-                    if (this.collectedLemmas.get(lemma) != null) {
-                        int rank = this.collectedLemmas.get(lemma);
-                        Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
-                        this.indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
-                        countIndexes++;
-                    } else {
-                        log.error("collectedLemmas.get(lemma) must not be null");
-                    }
-                }
+            if (pageEntity != null && countPag != 0) {
+                collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
+                collectedLemmas.values().removeIf(rank -> rank == null);
+                collectedLemmas.forEach((lemma, rank) -> {
+                    Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
+                    indexEntities.add(new Indexes(pageEntity, lemmaEntity, rank));
+                    countIndexes++;
+                });
             } else {
                 sleeping(10, "Error sleeping while waiting for an item in line");
             }
         }
         savingLemmas();
         savingIndexes();
-
         log.warn(logAboutEachSite());
     }
 
@@ -93,10 +80,10 @@ public class LemmasToolsImpl implements LemmaTools {
 
     private synchronized void savingIndexes() {
         long idxSave = System.currentTimeMillis();
-        this.indexRepository.saveAll(indexEntities);
+        indexRepository.saveAll(indexEntities);
         sleeping(50, "sleeping after saving lemmas");
         log.warn("Saving index lasts - " + (System.currentTimeMillis() - idxSave) + " ms");
-        this.indexEntities.clear();
+        indexEntities.clear();
     }
 
     private synchronized void savingLemmas() {
@@ -111,16 +98,21 @@ public class LemmasToolsImpl implements LemmaTools {
         return countLemmas + " lemmas and " +
                 countIndexes + " indexes saved " +
                 "in DB from site with url " +
-                currentThread().getName();
+                Thread.currentThread().getName();
     }
 
     public Boolean allowed() {
-        return !cycle | queue.iterator().hasNext();
+        return !cycle || !queue.isEmpty();
     }
 
-    private static void sleeping(int millis, String s) {
+    @Override
+    public boolean getCycle() {
+        return false;
+    }
+
+    private void sleeping(int millis, String s) {
         try {
-            sleep(millis);
+            Thread.sleep(millis);
         } catch (InterruptedException e) {
             log.error(s);
         }

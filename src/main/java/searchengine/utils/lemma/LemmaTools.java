@@ -15,8 +15,8 @@ public interface LemmaTools {
     void setOffOn(boolean value);
 
     Boolean allowed();
-
     void setCycle(boolean b);
+    boolean getCycle();
 }
 
 

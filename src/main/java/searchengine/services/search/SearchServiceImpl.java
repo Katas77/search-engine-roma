@@ -32,51 +32,69 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final LemmaSearchTools lemmaFinderUtil;
-
+    private final JsoupConnect jsoupConnects;
 
 
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
-        log.debug("Получен запрос: query='{}', url='{}', offset={}, limit={}", query, url, offset, limit);
+        if (query == null || query.isBlank()) {
+            return new ResponseEntity<>(
+                    new SearchResponse(false, 0, Collections.emptyList()),
+                    HttpStatus.BAD_REQUEST);
+        }
         List<SearchData> searchData;
-        if (!url.isEmpty()) {
-            if (siteRepository.findByUrl(url).isEmpty()) {
-                return new DataTransmission().indexPageFailed();
-            } else {
+        if (!url.isBlank()) {
+            Optional<Website> siteOptional = siteRepository.findByUrl(url);
+            if (siteOptional.isPresent()) {
                 searchData = onePageSearch(query, url);
+            } else {
+                return new DataTransmission().indexPageFailed();
             }
         } else {
             searchData = searchThroughAllSites(query);
         }
-        if (query == null || query.isEmpty() || searchData == null) {
-            searchData = new ArrayList<>();
-            return new ResponseEntity<>(new SearchResponse(true, 0, searchData), HttpStatus.NOT_FOUND);
+        if (searchData == null || searchData.isEmpty()) {
+            return new ResponseEntity<>(
+                    new SearchResponse(true, 0, Collections.emptyList()),
+                    HttpStatus.NOT_FOUND
+            );
         }
-        searchData.forEach(data -> {
-            log.debug("Найдено: {}", data.getUri());
-        });
-        return new ResponseEntity<>(new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)), HttpStatus.OK);
+        log.debug("{} =  -  найдено :", searchData.size());
+        for (SearchData data : searchData) {
+            log.debug("{} - найдено:", query);
+            log.debug("{}", data.getUri());
+        }
+        return new ResponseEntity<>(
+                new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)),
+                HttpStatus.OK
+        );
     }
 
     public List<SearchData> searchThroughAllSites(String query) {
-        log.info("Запускаем поиск по сайтам для запроса: {}", query);
+        log.info("Запускаем поиск по сайтам для запроса: " + query);
         List<Website> sites = siteRepository.findAll();
+        List<Lemma> sortedLemmasPerSite = new ArrayList<>();
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
-        List<Lemma> sortedLemmasPerSite = sites.stream()
-                .flatMap(site -> getLemmasFromSite(lemmasFromQuery, site).stream())
-                .toList();
-        List<SearchData> searchData = getSearchDataList(sortedLemmasPerSite, lemmasFromQuery);
-        searchData.sort(Comparator.comparing(SearchData::getRelevance).reversed());
-        log.info("Поиск по сайтам завершен.");
+        for (Website siteEntity : sites) {
+            sortedLemmasPerSite.addAll(getLemmasFromSite(lemmasFromQuery, siteEntity));
+        }
+        List<SearchData> searchData = null;
+        for (Lemma lemmaEntity : sortedLemmasPerSite) {
+            if (lemmaEntity.getLemma().equals(query)) {
+                searchData = new ArrayList<>(getSearchDataList(sortedLemmasPerSite, lemmasFromQuery));
+                searchData.sort((o1, o2) -> Float.compare(o2.getRelevance(), o1.getRelevance()));
+            }
+        }
+        log.info(" Поиск по сайтам завершен.");
         return searchData;
     }
 
 
     public List<SearchData> onePageSearch(String query, String url) {
         log.info("Запускаем поиск по сайтам для запроса: " + query);
-        Website siteEntity = siteRepository.findByUrl(url).orElseThrow();
+        Optional<Website> siteEntity = siteRepository.findByUrl(url);
         List<String> lemmasFromQuery = getQueryIntoLemma(query);
-        List<Lemma> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity);
+        List<Lemma> lemmasFromSite = getLemmasFromSite(lemmasFromQuery, siteEntity.orElseThrow());
         log.info("Поиск по сайтам завершен.");
         return getSearchDataList(lemmasFromSite, lemmasFromQuery);
     }
@@ -105,6 +123,7 @@ public class SearchServiceImpl implements SearchService {
             LinkedHashMap<Page, Float> sortedPagesByAbsRelevance =
                     getSortPagesWithAbsRelevance(sortedPageList, sortedIndexList);
             searchDataList = getSearchData(sortedPagesByAbsRelevance, lemmasFromQuery);
+
         }
         return searchDataList;
     }
@@ -132,27 +151,26 @@ public class SearchServiceImpl implements SearchService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
-    private List<SearchData> getSearchData(LinkedHashMap<Page, Float> sortedPages, List<String> lemmasFromQuery) {
-        return sortedPages.entrySet().stream()
-                .map(entry -> createSearchData(entry.getKey(), entry.getValue(), lemmasFromQuery))
-                .collect(Collectors.toList());
-    }
-
-    private SearchData createSearchData(Page page, float absRelevance, List<String> lemmasFromQuery) {
-        String uri = page.getPath().startsWith("/") ? page.getPath().substring(1) : page.getPath();
-        String content = page.getContent();
-        String title = Jsoup.parse(content).title();
-        Website siteEntity = page.getSiteEntity();
-        String siteName = siteEntity.getName();
-        String site = switch (siteName) {
-            case "playBack.ru" -> "https://www.playback.ru";
-            case "skillbox.ru" -> "https://www.skillbox.ru";
-            case "fparf.ru" -> "https://fparf.ru";
-            default -> "";
-        };
-        String clearContent = lemmaFinderUtil.removeHtmlTags(content);
-        String snippet = getSnippet(clearContent, lemmasFromQuery);
-        return new SearchData(site, siteName, uri, title, snippet, absRelevance);
+    private List<SearchData> getSearchData(LinkedHashMap<Page, Float> sortedPages,
+                                           List<String> lemmasFromQuery) {
+        List<SearchData> searchData = new ArrayList<>();
+        for (Page pageEntity : sortedPages.keySet()) {
+            String uri = pageEntity.getPath().substring(1);
+            String content = pageEntity.getContent();
+            String title = jsoupConnects.getTitleFromHtml(content);
+            Website siteEntity = pageEntity.getSiteEntity();
+            String siteName = siteEntity.getName();
+            String site = "";
+            if (siteName.equals("playBack.ru")) {
+                site = "https://" + siteName;
+                uri = pageEntity.getPath();
+            }
+            Float absRelevance = sortedPages.get(pageEntity);
+            String clearContent = lemmaFinderUtil.removeHtmlTags(content);
+            String snippet = getSnippet(clearContent, lemmasFromQuery);
+            searchData.add(new SearchData(site, siteName, uri, title, snippet, absRelevance));
+        }
+        return searchData;
     }
 
 
@@ -163,7 +181,7 @@ public class SearchServiceImpl implements SearchService {
             lemmaIndex.addAll(lemmaFinderUtil.findLemmaIndexInText(content, lemma));
         }
         Collections.sort(lemmaIndex);
-        List<String> wordsList = extractAndHighWords(content, lemmaIndex);
+        List<String> wordsList = extractAndHighlightWordsByLemmaIndex(content, lemmaIndex);
         for (int i = 0; i < wordsList.size(); i++) {
             result.append(wordsList.get(i)).append("... ");
             if (i > 3) {
@@ -173,7 +191,7 @@ public class SearchServiceImpl implements SearchService {
         return result.toString();
     }
 
-    private List<String> extractAndHighWords(String content, List<Integer> lemmaIndex) {
+    private List<String> extractAndHighlightWordsByLemmaIndex(String content, List<Integer> lemmaIndex) {
         List<String> result = new ArrayList<>();
         for (int i = 0; i < lemmaIndex.size(); i++) {
             int start = lemmaIndex.get(i);
@@ -184,14 +202,14 @@ public class SearchServiceImpl implements SearchService {
                 step += 1;
             }
             i = step - 1;
-            String text = getWordsFromIndex(start, end, content);
+            String text = getWordsFromIndexWithHighlighting(start, end, content);
             result.add(text);
         }
         result.sort(Comparator.comparingInt(String::length).reversed());
         return result;
     }
 
-    private String getWordsFromIndex(int start, int end, String content) {
+    private String getWordsFromIndexWithHighlighting(int start, int end, String content) {
         String word = content.substring(start, end);
         int prevPoint;
         int lastPoint;
@@ -211,10 +229,10 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private List<SearchData> searchDataOffset(List<SearchData> searchData, int offset, int limit) {
-        int batch = limit + offset;
-        if (batch > searchData.size()) {
-            batch = searchData.size();
+        int a = limit + offset;
+        if (a > searchData.size()) {
+            a = searchData.size();
         }
-        return searchData.subList(offset, batch);
+        return searchData.subList(offset, a);
     }
 }

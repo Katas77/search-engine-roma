@@ -26,11 +26,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final SitesList sitesList;
     public static String oneUrl = "";
 
-    /**
-     * Метод запуска индексации сайтов.
-     *
-     * @return ответ с результатом выполнения
-     */
     @Override
     public ResponseEntity<Object> indexingStart() {
         log.info("Start indexing websites");
@@ -57,14 +52,13 @@ public class IndexingServiceImpl implements IndexingService {
         }
 
         log.info("Configuration valid for URL: {}. Starting indexing...", url);
-        oneUrl = url;  // Сохраняем URL в статическом поле
+        oneUrl = url;
         return new DataTransmission().statusOk();
     }
 
     @Override
     public ResponseEntity<Object> indexingStop() {
         log.info("--- Stopping indexing process ---");
-
         tools.setIsActive(false);
         return new DataTransmission().statusOk();
     }
@@ -77,4 +71,5 @@ public class IndexingServiceImpl implements IndexingService {
         }
         return false;
     }
+
 }

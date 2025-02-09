@@ -43,23 +43,19 @@ public class IndexingTools {
         log.warn("Full indexing will be started now");
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
-
-        // Запускаем рекурсивную задачу для обработки страниц сайта
         RecursiveThreadBody(joinPool, siteEntity, latch);
-
-        // Запускаем обработку лемм
         lemmasThreadBody(siteEntity, latch);
 
         try {
-            latch.await(); // Ожидаем завершения обеих задач
+            latch.await();
         } catch (InterruptedException e) {
             log.error("InterruptedException occurred during await(): {}", e.getMessage());
         }
 
-        joinPool.shutdownNow(); // Завершаем работу пула потоков
+        joinPool.shutdownNow();
 
         if (update) {
-            updateEntity(siteEntity); // Обновляем сущность сайта
+            updateEntity(siteEntity);
         }
     }
 

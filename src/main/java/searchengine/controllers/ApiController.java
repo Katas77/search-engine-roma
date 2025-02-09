@@ -49,8 +49,7 @@ public class ApiController {
     public ResponseEntity<Object> startIndexing() {
         if (isIndexing()) {
             indexingService.indexingStop();
-            return new DataTransmission().indexationAlreadyStarted();
-        }
+            return new DataTransmission().indexationAlreadyStarted();}
         return indexingService.indexingStart();
     }
 
@@ -74,8 +73,7 @@ public class ApiController {
                                          @RequestParam(required = false) int limit) {
         if (indexRepositoryEmpty()) {
             return new ResponseEntity<>(new SearchResponse(true, 1, searchData), HttpStatus.OK);
-        } else
-            return searchService.search(query, site, offset, limit);
+        } else return searchService.search(query, site, offset, limit);
     }
 
     private boolean isIndexing() {

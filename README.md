@@ -1,4 +1,4 @@
-# "Итоговый проект курса "Java-разработчик"
+# "Курс "Java-разработчик"
 ## «Поисковый движок» 
 
 # Описание:
@@ -35,7 +35,11 @@
 - Необходимо выполните следующие команды:
 ```bash
 cd docker
+```
+```bash
 cd docker
+```
+```bash
 docker-compose up
 ```
 ## Используемые технологии:
@@ -46,6 +50,7 @@ docker-compose up
 - Postgresql
 - JPA (Hibernate)
 - Jsoup: Java HTML parser
+- Fork/Join Framework in Java
 - Spring-boot-starter-security
 
 ### IntelliJ IDEA

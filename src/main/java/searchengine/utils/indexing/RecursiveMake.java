@@ -4,25 +4,21 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.UncheckedIOException;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Safelist;
 import org.jsoup.select.Elements;
 import org.springframework.dao.DataIntegrityViolationException;
+import searchengine.color.Colors;
 import searchengine.model.Page;
 import searchengine.model.Website;
 import searchengine.repositories.PageRepository;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static java.lang.Thread.sleep;
-import static searchengine.utils.indexing.StringPool.*;
 
 @Slf4j
 @Getter
@@ -77,7 +73,7 @@ public class RecursiveMake extends RecursiveAction {
             parentPath = "/" + currentUrl.replace(siteUrl, "");
             cleanHtmlContent();
             if (document.html().length() > 4000) {
-               data = document.html().substring(0, 3999);
+                data = document.html().substring(0, 3999);
             }
             pageEntity = new Page(siteEntity, response.statusCode(), data, parentPath);
         } catch (IOException | InterruptedException e) {
@@ -129,6 +125,7 @@ public class RecursiveMake extends RecursiveAction {
             } catch (DataIntegrityViolationException exception) {
                 log.error("Error saving page entity: {}", exception.getMessage());
             }
+            log.info(Colors.ANSI_GREEN+"Save Page  with UR: {}"+Colors.ANSI_RESET,  pageEntity.getPath());
         }
     }
 
@@ -204,7 +201,7 @@ public class RecursiveMake extends RecursiveAction {
     private boolean nameSiteContains(String href) {
         return href.toLowerCase().contains("skillbox") ||
                 href.toLowerCase().contains("playback") ||
-                href.toLowerCase().contains("upakmarket");
+                href.toLowerCase().contains("fparf");
     }
 
     private void internVisitedLinks(String url) {
@@ -213,5 +210,4 @@ public class RecursiveMake extends RecursiveAction {
 
     private void internSavedPath(String path) {
         savedPaths.put(path, true);
-    }
-}
+    }}

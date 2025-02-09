@@ -20,6 +20,7 @@ public interface PageRepository extends JpaRepository<Page, Long> {
             nativeQuery = true)
     List<Page> findByLemmas(@Param("lemmas") Collection<Lemma> lemmas);
     Integer countBySiteEntity(Website siteEntity);
+    Boolean existsByPathAndSiteEntity(String path,Website siteEntity);
 
 
 }

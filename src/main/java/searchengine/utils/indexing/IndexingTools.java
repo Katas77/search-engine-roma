@@ -78,7 +78,7 @@ public class IndexingTools {
         try {
             RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
             pool.invoke(action);
-        } catch (NullPointerException | ConcurrentModificationException | RejectedExecutionException e) {
+        } catch (Exception e) {
             log.error("Exception occurred during recursive task execution: {}", e.getMessage());
         }
 

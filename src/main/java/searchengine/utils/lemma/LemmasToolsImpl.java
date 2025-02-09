@@ -15,6 +15,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.utils.searchandLemma.LemmaFinder;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,18 +43,15 @@ public class LemmasToolsImpl implements LemmaTools {
     private final LemmaRepository lemmaRepository;
 
     public void startCollecting() throws InterruptedException {
-        while (allowed()) {
-            int countPag = pageRepository.countBySiteEntity(siteEntity);
+        while (true) {
             if (!offOn) {
                 clearSaving();
                 return;
             }
             lock.lock();
-            Page pageEntity = queue.poll();
-            if (pageEntity == null) {
-                continue;
-            }
-            if (countPag != 0) {
+            Page pageEntity =queue.poll(20, TimeUnit.SECONDS);;
+            if (pageEntity == null)
+            { break;}
                 collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
                 collectedLemmas.values().removeIf(Objects::isNull);
                 collectedLemmas.forEach((lemma, rank) -> {
@@ -62,16 +60,12 @@ public class LemmasToolsImpl implements LemmaTools {
                     indexEntities.add(index);
                     countIndexes++;
                     log.info(Colors.ANSI_BLUE+"Adding index to collection: {}"+Colors.ANSI_RESET, index);
-                    log.info("Current size of indexEntities: {}", indexEntities.size());
-                });
-                lock.unlock();
-            } else {
-                sleeping(10, "Error sleeping while waiting for an item in line");
-            }
+                    log.info("Current size of indexEntities: {}", indexEntities.size());});
         }
         savingLemmas();
         savingIndexes();
         log.warn(logAboutEachSite());
+        lock.unlock();
     }
 
     public Lemma createLemmaEntity(String lemma, Website siteEntity) {
@@ -115,12 +109,6 @@ public class LemmasToolsImpl implements LemmaTools {
                 countIndexes + " indexes saved " +
                 "in DB from site with url "+Colors.ANSI_RESET;
     }
-
-    public Boolean allowed() throws InterruptedException {
-        Thread.sleep(10);
-        return !queue.isEmpty();
-    }
-
 
     private void sleeping(int millis, String s) {
         try {

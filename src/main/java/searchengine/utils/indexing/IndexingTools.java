@@ -53,11 +53,21 @@ public class IndexingTools {
     private BlockingQueue<Page> blockingQueue = new LinkedBlockingQueue<>(100);
 
     public void startThreadsIndexing(Website siteEntity) throws InterruptedException {
-        log.warn("Full indexing will be started now");
         CountDownLatch latch = new CountDownLatch(2);
         logInfo(siteEntity);
-        RecursiveThreadBody(joinPool, siteEntity, latch);
-        lemmasThreadBody(siteEntity, latch);
+        Runnable runnableLemmas= () -> {
+            try {
+                lemmasThreadBody(siteEntity, latch);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        };
+        Runnable runnableRecursive= () -> {
+            RecursiveThreadBody(joinPool, siteEntity, latch);
+
+        };
+        new Thread(runnableLemmas).start();
+        new Thread(runnableRecursive).start();
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -72,7 +82,6 @@ public class IndexingTools {
     }
 
     private void lemmasThreadBody(Website siteEntity, CountDownLatch latch) throws InterruptedException {
-        Thread.sleep(500);
         lemmaService.setQueue(blockingQueue);
         lemmaService.setSiteEntity(siteEntity);
         try {

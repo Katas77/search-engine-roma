@@ -14,7 +14,7 @@ public interface LemmaTools {
 
     void setOffOn(boolean value);
 
-    Boolean allowed() throws InterruptedException;
+
 }
 
 

@@ -64,7 +64,7 @@ public class IndexingServiceImpl implements IndexingService {
 
     @Override
     public ResponseEntity<Object> indexingStop() {
-        log.info("--- Stopping indexing process ---");
+        log.info("Stopping indexing process");
         tools.setIsActive(false);
         return new DataTransmission().statusOk();
     }

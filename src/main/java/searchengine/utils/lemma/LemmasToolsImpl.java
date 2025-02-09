@@ -32,7 +32,6 @@ public class LemmasToolsImpl implements LemmaTools {
     private int countIndexes = 0;
     private Website siteEntity;
     private Indexes indexEntity;
-    public volatile boolean cycle = false;
     private BlockingQueue<Page> queue;
     private Set<Indexes> indexEntities = new HashSet<>();
     private Map<String, Integer> collectedLemmas = new HashMap<>();
@@ -42,7 +41,7 @@ public class LemmasToolsImpl implements LemmaTools {
     private final IndexRepository indexRepository;
     private final LemmaRepository lemmaRepository;
 
-    public void startCollecting() {
+    public void startCollecting() throws InterruptedException {
         while (allowed()) {
             int countPag = pageRepository.countBySiteEntity(siteEntity);
             if (!offOn) {
@@ -117,14 +116,11 @@ public class LemmasToolsImpl implements LemmaTools {
                 "in DB from site with url "+Colors.ANSI_RESET;
     }
 
-    public Boolean allowed() {
-        return !cycle || !queue.isEmpty();
+    public Boolean allowed() throws InterruptedException {
+        Thread.sleep(10);
+        return !queue.isEmpty();
     }
 
-    @Override
-    public boolean getCycle() {
-        return false;
-    }
 
     private void sleeping(int millis, String s) {
         try {

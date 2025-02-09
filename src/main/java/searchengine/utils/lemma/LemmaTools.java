@@ -10,13 +10,11 @@ public interface LemmaTools {
 
     void setQueue(BlockingQueue<Page> queueOfPagesForLemmasCollecting);
 
-    void startCollecting();
+    void startCollecting() throws InterruptedException;
 
     void setOffOn(boolean value);
 
-    Boolean allowed();
-    void setCycle(boolean b);
-    boolean getCycle();
+    Boolean allowed() throws InterruptedException;
 }
 
 

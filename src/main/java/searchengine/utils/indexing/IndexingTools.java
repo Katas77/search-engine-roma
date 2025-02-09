@@ -71,9 +71,9 @@ public class IndexingTools {
 
     }
 
-    private void lemmasThreadBody(Website siteEntity, CountDownLatch latch) {
+    private void lemmasThreadBody(Website siteEntity, CountDownLatch latch) throws InterruptedException {
+        Thread.sleep(500);
         lemmaService.setQueue(blockingQueue);
-        lemmaService.setCycle(false);
         lemmaService.setSiteEntity(siteEntity);
         try {
             lemmaService.startCollecting();
@@ -91,7 +91,6 @@ public class IndexingTools {
         } catch (Exception e) {
             log.error("Exception occurred during recursive task execution: {}", e.toString());
         }
-        lemmaService.setCycle(true);
         latch.countDown();
         log.info("{} pages saved in DB.", pageRepository.countBySiteEntity(siteEntity));
         log.warn("Recursive thread finished, latch = {}", latch.getCount());

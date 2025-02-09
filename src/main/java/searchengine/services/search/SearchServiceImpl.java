@@ -60,7 +60,7 @@ public class SearchServiceImpl implements SearchService {
                     HttpStatus.NOT_FOUND
             );
         }
-        log.debug(Colors.ANSI_YELLOW+"{} =  -  найдено :", searchData.size()+Colors.ANSI_RESET);
+        log.info(Colors.ANSI_YELLOW+"{} =  -  найдено :", searchData.size()+Colors.ANSI_RESET);
         return new ResponseEntity<>(
                 new SearchResponse(true, searchData.size(), searchDataOffset(searchData, offset, limit)),
                 HttpStatus.OK

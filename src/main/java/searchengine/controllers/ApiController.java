@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import searchengine.services.search.SearchService;
-import searchengine.dto.response.DataTransmission;
+import searchengine.dto.response.DtoMessenger;
 import searchengine.services.statistic.StatisticsService;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public class ApiController {
     public ResponseEntity<Object> startIndexing() {
         if (isIndexing()) {
             indexingService.indexingStop();
-            return new DataTransmission().indexationAlreadyStarted();}
+            return new DtoMessenger().indexationAlreadyStarted();}
         return indexingService.indexingStart();
     }
 
@@ -62,7 +62,7 @@ public class ApiController {
     @GetMapping("/stopIndexing")
     public ResponseEntity<Object> stopIndexing() {
         if (!isIndexing())
-            return new DataTransmission().indexingNotRunning();
+            return new DtoMessenger().indexingNotRunning();
         return indexingService.indexingStop();
     }
 
@@ -81,7 +81,7 @@ public class ApiController {
     }
 
     private boolean indexRepositoryEmpty() {
-        searchData.add(new SearchData("-", "", "", "Данные еще не внесены в таблицу  «search_index», повторите запрос позже ", "", 1));
+        searchData.add(new SearchData("-", "", "", "Данные еще не внесены в таблицу  «search_index», повторите запрос через 20 секунд ", "", 1));
         return indexRepository.findAll().size() < 25;
 
     }

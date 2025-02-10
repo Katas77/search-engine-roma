@@ -2,7 +2,6 @@ package searchengine.services.search;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.dto.response.DataTransmission;
+import searchengine.dto.response.DtoMessenger;
 import searchengine.utils.indexing.JsoupConnect;
 import searchengine.utils.searchandLemma.LemmaSearchTools;
 
@@ -49,7 +48,7 @@ public class SearchServiceImpl implements SearchService {
             if (siteOptional.isPresent()) {
                 searchData = onePageSearch(query, url);
             } else {
-                return new DataTransmission().indexPageFailed();
+                return new DtoMessenger().indexPageFailed();
             }
         } else {
             searchData = searchThroughAllSites(query);

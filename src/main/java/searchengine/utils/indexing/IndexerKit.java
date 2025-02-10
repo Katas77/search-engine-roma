@@ -13,32 +13,31 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingServiceImpl;
-import searchengine.utils.lemma.LemmaTools;
+import searchengine.utils.lemma.LexicalReducer;
 
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Setter
 @Getter
 @Component
 @Slf4j
-public class IndexingTools {
+public class IndexerKit {
 
     private boolean update = true;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
     private final SiteRepository siteRepository;
-    private final LemmaTools lemmaService;
+    private final LexicalReducer lemmaService;
 
-    public IndexingTools(PageRepository pageRepository,
-                         LemmaRepository lemmaRepository,
-                         IndexRepository indexRepository,
-                         SiteRepository siteRepository,
-                         LemmaTools lemmaService) {
+    public IndexerKit(PageRepository pageRepository,
+                      LemmaRepository lemmaRepository,
+                      IndexRepository indexRepository,
+                      SiteRepository siteRepository,
+                      LexicalReducer lemmaService) {
         this.pageRepository = pageRepository;
         this.lemmaRepository = lemmaRepository;
         this.indexRepository = indexRepository;
@@ -55,19 +54,21 @@ public class IndexingTools {
     public void startThreadsIndexing(Website siteEntity) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(2);//будет ждать завершения двух операций перед тем, как позволить основному потоку продолжить выполнение.
         logInfo(siteEntity);
-        Runnable runnableLemmas= () -> {
+        Runnable runnableLemmas = () -> {
             try {
                 lemmasThreadBody(siteEntity, latch);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         };
-        Runnable runnableRecursive= () -> {
+        Runnable runnableRecursive = () -> {
             RecursiveThreadBody(joinPool, siteEntity, latch);
 
         };
         new Thread(runnableLemmas).start();
         new Thread(runnableRecursive).start();
+        Thread thread = new Thread(() -> indexedIsStopped(siteEntity));
+        thread.start();
         try {
             latch.await();//await(), блокируется до тех пор, пока все операции не завершатся и счётчик не достигнет нуля
         } catch (InterruptedException e) {
@@ -95,7 +96,7 @@ public class IndexingTools {
 
     private void RecursiveThreadBody(ForkJoinPool pool, Website siteEntity, CountDownLatch latch) {
         try {
-            RecursiveMake action = new RecursiveMake(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
+            SubtaskDispatcher action = new SubtaskDispatcher(siteEntity.getUrl(), siteEntity, blockingQueue, pageRepository, siteEntity.getUrl());
             pool.invoke(action);
         } catch (Exception e) {
             log.error("Exception occurred during recursive task execution: {}", e.toString());
@@ -109,15 +110,14 @@ public class IndexingTools {
         update = false;
         stopUpdate();
         try {
-            log.warn("---stopped by user----");
+            log.warn("stopped by user");
             Thread.sleep(1_000);
         } catch (InterruptedException e) {
             log.error("InterruptedException occurred during sleep: {}", e.toString());
         } finally {
             joinPool.shutdownNow();
         }
-        lemmaService.setOffOn(value);
-        RecursiveMake.isActive = value;
+        SubtaskDispatcher.isActive = value;
     }
 
     private void updateEntity(Website siteEntity) {
@@ -179,44 +179,30 @@ public class IndexingTools {
         }
     }
 
-    private void stopIndexing(Website siteEntity) {
-        int timeSleep;
-        if (siteEntity.getUrl().contains("https://www.playback.ru")) {
-            timeSleep = 11000;
-        } else {
-            timeSleep = 8000;
-        }
-        AtomicBoolean shouldStop = new AtomicBoolean(false);
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            if (!update) {
-                shouldStop.set(true);
+    private void indexedIsStopped(Website siteEntity) {
+        while (true) {
+            try {
+                Thread.sleep(3_000);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
             }
-
+            if (!update) {
+                return;
+            }
             int countPages1 = pageRepository.countBySiteEntity(siteEntity);
             try {
-                Thread.sleep(timeSleep);
+                Thread.sleep(9_000);
             } catch (InterruptedException e) {
-                log.error("InterruptedException occurred during sleep: {}", e.toString());
+                System.out.println(e.getMessage());
             }
             int countPages2 = pageRepository.countBySiteEntity(siteEntity);
             if (countPages1 == countPages2) {
                 joinPool.shutdownNow();
-                RecursiveMake.isActive = false;
-                lemmaService.setOffOn(false);
+                SubtaskDispatcher.isActive = false;
                 updateEntity(siteEntity);
-                shouldStop.set(true);
-            }
-        }, 7, 7, TimeUnit.SECONDS);
-
-        while (!shouldStop.get()) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                log.error("InterruptedException occurred during sleep: {}", e.toString());
+                return;
             }
         }
-        executor.shutdown();
     }
 
     private boolean isIndexing() {

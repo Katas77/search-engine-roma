@@ -22,7 +22,7 @@ import java.util.*;
 @Setter
 @RequiredArgsConstructor
 @Component
-public class WebsiteSaveService {
+public class LinkSaver {
     private final SitesList sitesList;
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;

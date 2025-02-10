@@ -20,14 +20,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-
 @Setter
 @Service
 @RequiredArgsConstructor
 @Getter
-public class LemmasToolsImpl implements LemmaTools {
+public class LexicalReducerImpl implements LexicalReducer {
     private Lock lock = new ReentrantLock();
-    private boolean offOn = true;
     private int countPages = 0;
     private int countLemmas = 0;
     private int countIndexes = 0;
@@ -44,14 +42,11 @@ public class LemmasToolsImpl implements LemmaTools {
 
     public void startCollecting() throws InterruptedException {
         while (true) {
-            if (!offOn) {
-                clearSaving();
-                return;
-            }
             lock.lock();
-            Page pageEntity =queue.poll(20, TimeUnit.SECONDS);;
-            if (pageEntity == null)
-            { break;}
+            Page pageEntity =queue.poll(10, TimeUnit.SECONDS);//Если за 10 сек элемент так и не появился, метод вернет null.
+            if ((pageEntity == null))
+            {      log.info(Colors.ANSI_RED+"Stopping indexing process. Please wait for the 'data saved' message within 10 seconds."+Colors.ANSI_RESET);
+                break;}
                 collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
                 collectedLemmas.values().removeIf(Objects::isNull);
                 collectedLemmas.forEach((lemma, rank) -> {
@@ -59,11 +54,10 @@ public class LemmasToolsImpl implements LemmaTools {
                    Indexes index= new Indexes(pageEntity, lemmaEntity, rank);
                     indexEntities.add(index);
                     countIndexes++;
-                    log.info(Colors.ANSI_BLUE+"Adding index to collection: {}"+Colors.ANSI_RESET, index);
+                    log.info(Colors.ANSI_CYAN+"Adding index to collection:{}"+Colors.ANSI_RESET,pageEntity.getSiteEntity().toString());
                 });
         }
-        savingLemmas();
-        savingIndexes();
+        saveDataToDatabase();
         log.warn(logAboutEachSite());
         lock.unlock();
     }
@@ -82,46 +76,27 @@ public class LemmasToolsImpl implements LemmaTools {
         return lemmaObj;
     }
 
-    private synchronized void savingIndexes() {
-        long idxSave = System.currentTimeMillis();
-        try {
-            indexRepository.saveAll(indexEntities);
-        } finally {
-            indexEntities.clear();
-        }
-        log.warn("Saving index lasts - " + (System.currentTimeMillis() - idxSave) + " ms");
-    }
+    private synchronized void saveDataToDatabase() {
+        long startTime = System.currentTimeMillis();
 
-    private synchronized void savingLemmas() {
         try {
             lemmaRepository.saveAll(lemmaEntities.values());
+            indexRepository.saveAll(indexEntities);
         } finally {
             lemmaEntities.clear();
+            indexEntities.clear();
         }
-        long lemmaSave = System.currentTimeMillis();
-        sleeping(50, "sleeping after saving lemmas");
-        log.warn("Saving lemmas lasts - " + (System.currentTimeMillis() - lemmaSave) + " ms");
 
+        log.info("Saved {} lemmas and {} indexes in {} ms",
+                countLemmas, countIndexes, System.currentTimeMillis() - startTime);
     }
 
     private String logAboutEachSite() {
         return Colors.ANSI_PURPLE+countLemmas + " lemmas and " +
                 countIndexes + " indexes saved " +
-                "in DB from site with url. Тепеперь можете осуществлять быстрый поиск нужной информации"+Colors.ANSI_RESET;
+                "in DB from site with url. Тепеперь можете осуществлять  поиск нужной информации"+Colors.ANSI_RESET;
     }
 
-    private void sleeping(int millis, String s) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            log.error(s);
-        }
-    }
 
-    private void clearSaving() {
-        queue.clear();
-        savingLemmas();
-        savingIndexes();
-        log.warn(logAboutEachSite());
-    }
+
 }

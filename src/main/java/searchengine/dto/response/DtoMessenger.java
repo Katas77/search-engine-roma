@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 @Builder
-public class DataTransmission {
+public class DtoMessenger {
     boolean result;
     String error;
 
     public ResponseEntity<Object> statusOk() {
         return new ResponseEntity<>(
-                DataTransmission.builder()
+                DtoMessenger.builder()
                         .result(true)
                         .error("Успешное принятие и обработка запроса клиента.")
                         .build(), HttpStatus.OK);
@@ -25,7 +25,7 @@ public class DataTransmission {
 
     public ResponseEntity<Object> indexationAlreadyStarted() {
         return new ResponseEntity<>(
-                DataTransmission.builder()
+                DtoMessenger.builder()
                         .result(false)
                         .error("Индексация уже запущена.")
                         .build(), HttpStatus.BAD_REQUEST);
@@ -33,7 +33,7 @@ public class DataTransmission {
 
     public ResponseEntity<Object> indexingNotRunning() {
         return new ResponseEntity<>(
-                DataTransmission.builder()
+                DtoMessenger.builder()
                         .result(false)
                         .error("Индексация не запущена.")
                         .build(), HttpStatus.BAD_REQUEST);
@@ -42,7 +42,7 @@ public class DataTransmission {
 
     public ResponseEntity<Object> indexPageFailed() {
         return new ResponseEntity<>(
-                DataTransmission.builder()
+                DtoMessenger.builder()
                         .result(false)
                         .error("Данная страница находится за пределами сайтов указанных в конфигурационном файле!")
                         .build(), HttpStatus.NOT_FOUND);

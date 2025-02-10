@@ -15,6 +15,7 @@ import searchengine.color.Colors;
 import searchengine.model.Page;
 import searchengine.model.Website;
 import searchengine.repositories.PageRepository;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,7 +25,7 @@ import java.util.concurrent.*;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class RecursiveMake extends RecursiveAction {
+public class SubtaskDispatcher extends RecursiveAction {
     public static volatile Boolean isActive = true;
     private final String siteUrl;
     private final String currentUrl;
@@ -39,11 +40,11 @@ public class RecursiveMake extends RecursiveAction {
     private final Map<String, Boolean> pages404 = new HashMap<>();
     private final Map<String, Boolean> savedPaths = new HashMap<>();
 
-    public RecursiveMake(String currentUrl,
-                         Website siteEntity,
-                         BlockingQueue<Page> outcomeQueue,
-                         PageRepository pageRepository,
-                         String siteUrl) {
+    public SubtaskDispatcher(String currentUrl,
+                             Website siteEntity,
+                             BlockingQueue<Page> outcomeQueue,
+                             PageRepository pageRepository,
+                             String siteUrl) {
         this.siteEntity = siteEntity;
         this.outcomeQueue = outcomeQueue;
         this.currentUrl = currentUrl;
@@ -57,11 +58,9 @@ public class RecursiveMake extends RecursiveAction {
         if (!isActive) {
             return;
         }
-
         if (!links.containsKey(currentUrl)) {
             internVisitedLinks(currentUrl);
         }
-
         try {
             Thread.sleep(150);
             Connection.Response response = Jsoup.connect(currentUrl)
@@ -79,14 +78,11 @@ public class RecursiveMake extends RecursiveAction {
         } catch (IOException | InterruptedException e) {
             log.error("Error parsing URL {}: {}", currentUrl, e.getMessage());
         }
-
         saveExtractedPage();
-
         final Elements elements = document.select("a[href]");
         if (!elements.isEmpty()) {
             childLinks = getChildLinks(elements);
         }
-
         forkAndJoinTasks();
     }
 
@@ -125,7 +121,7 @@ public class RecursiveMake extends RecursiveAction {
             } catch (DataIntegrityViolationException exception) {
                 log.error("Error saving page entity: {}", exception.getMessage());
             }
-            log.info(Colors.ANSI_GREEN + "Save Page  with UR: {} from site {}" + Colors.ANSI_RESET, pageEntity.getPath(),pageEntity.getSiteEntity().getName());
+            log.info(Colors.ANSI_GREEN + "Save Page  with UR: {} from site {}" + Colors.ANSI_RESET, pageEntity.getPath(), pageEntity.getSiteEntity().getName());
         }
     }
 
@@ -134,13 +130,13 @@ public class RecursiveMake extends RecursiveAction {
             return;
         }
 
-        List<RecursiveMake> subTasks = new LinkedList<>();
+        List<SubtaskDispatcher> subTasks = new LinkedList<>();
         for (String childLink : childLinks) {
             if (childLink.startsWith("https:")
                     && !pages404.containsKey(childLink)
                     && !links.containsKey(childLink)) {
                 try {
-                    RecursiveMake action = new RecursiveMake(childLink, siteEntity, outcomeQueue, pageRepository, siteUrl);
+                    SubtaskDispatcher action = new SubtaskDispatcher(childLink, siteEntity, outcomeQueue, pageRepository, siteUrl);
                     action.fork();
                     subTasks.add(action);
                 } catch (NullPointerException ignored) {
@@ -150,7 +146,7 @@ public class RecursiveMake extends RecursiveAction {
             }
         }
 
-        for (RecursiveMake task : subTasks) {
+        for (SubtaskDispatcher task : subTasks) {
             task.join();
         }
     }

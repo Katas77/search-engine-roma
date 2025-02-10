@@ -6,11 +6,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import searchengine.config.Site;
 import searchengine.config.SitesList;
-import searchengine.dto.response.DataTransmission;
+import searchengine.dto.response.DtoMessenger;
 import searchengine.model.Website;
 import searchengine.repositories.SiteRepository;
-import searchengine.utils.indexing.WebsiteSaveService;
-import searchengine.utils.indexing.IndexingTools;
+import searchengine.utils.indexing.LinkSaver;
+import searchengine.utils.indexing.IndexerKit;
 
 import java.util.*;
 
@@ -20,8 +20,8 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class IndexingServiceImpl implements IndexingService {
-    private final WebsiteSaveService inRepository;
-    private final IndexingTools tools;
+    private final LinkSaver inRepository;
+    private final IndexerKit tools;
     public final SiteRepository siteRepository;
     private final SitesList sitesList;
     public static String oneUrl = "";
@@ -45,7 +45,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
 
         log.debug("Started {} threads for indexing.", threadList.size());
-        return new DataTransmission().statusOk();
+        return new DtoMessenger().statusOk();
     }
 
     @Override
@@ -54,19 +54,18 @@ public class IndexingServiceImpl implements IndexingService {
 
         if (!isConfigurationValid(url)) {
             log.error("Invalid configuration for URL: {}", url);
-            return new DataTransmission().indexPageFailed();
+            return new DtoMessenger().indexPageFailed();
         }
 
         log.info("Configuration valid for URL: {}. Starting indexing...", url);
         oneUrl = url;
-        return new DataTransmission().statusOk();
+        return new DtoMessenger().statusOk();
     }
 
     @Override
     public ResponseEntity<Object> indexingStop() {
-        log.info("Stopping indexing process");
         tools.setIsActive(false);
-        return new DataTransmission().statusOk();
+        return new DtoMessenger().statusOk();
     }
 
     private boolean isConfigurationValid(String url) {

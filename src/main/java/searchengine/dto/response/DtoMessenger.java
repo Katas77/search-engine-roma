@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 public class DtoMessenger {
     boolean result;
     String error;
-
     public ResponseEntity<Object> statusOk() {
         return new ResponseEntity<>(
                 DtoMessenger.builder()
@@ -38,7 +37,6 @@ public class DtoMessenger {
                         .error("Индексация не запущена.")
                         .build(), HttpStatus.BAD_REQUEST);
     }
-
 
     public ResponseEntity<Object> indexPageFailed() {
         return new ResponseEntity<>(

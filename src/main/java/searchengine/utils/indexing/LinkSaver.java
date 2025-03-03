@@ -1,6 +1,5 @@
 package searchengine.utils.indexing;
 
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

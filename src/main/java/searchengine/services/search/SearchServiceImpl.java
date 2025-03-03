@@ -34,7 +34,6 @@ public class SearchServiceImpl implements SearchService {
     private final LemmaSearchTools lemmaFinderUtil;
     private final JsoupConnect jsoupConnects;
 
-
     @Override
     public ResponseEntity<Object> search(String query, String url, int offset, int limit) {
         if (query == null || query.isBlank()) {

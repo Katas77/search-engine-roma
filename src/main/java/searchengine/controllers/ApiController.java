@@ -20,11 +20,9 @@ import searchengine.services.statistic.StatisticsService;
 
 import java.util.ArrayList;
 
-
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-
 public class ApiController {
 
     private final SearchService searchService;

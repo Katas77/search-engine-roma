@@ -2,7 +2,6 @@ package searchengine.utils.indexing;
 
 import java.util.Random;
 
-
 public class UserAgent {
     public String[] arrayAgents;
 

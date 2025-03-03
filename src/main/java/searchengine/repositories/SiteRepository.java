@@ -7,7 +7,6 @@ import searchengine.model.Status;
 
 import java.util.Optional;
 
-
 @Repository
 public interface SiteRepository extends JpaRepository<Website, Long> {
    Optional<Website> findByUrl(String url);

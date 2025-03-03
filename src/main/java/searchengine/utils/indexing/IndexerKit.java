@@ -1,6 +1,6 @@
 package searchengine.utils.indexing;
 
-import lombok.Getter;;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -14,7 +14,6 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 import searchengine.services.indexing.IndexingServiceImpl;
 import searchengine.utils.lemma.LexicalReducer;
-
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
 import java.util.List;

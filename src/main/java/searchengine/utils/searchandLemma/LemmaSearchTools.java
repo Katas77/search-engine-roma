@@ -24,7 +24,6 @@ public class LemmaSearchTools {
         } catch (IOException ignored) {
         }
     }
-
     private static RussianLuceneMorphology russianLuceneMorphology;
 
     static {

@@ -12,7 +12,6 @@ import searchengine.model.Website;
 import java.util.Collection;
 import java.util.List;
 
-
 @Transactional
 @Repository
 public interface PageRepository extends JpaRepository<Page, Long> {

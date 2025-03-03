@@ -205,24 +205,28 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private String getWordsFromIndexWithHighlighting(int start, int end, String content) {
-        String word = content.substring(start, end);
-        int prevPoint;
-        int lastPoint;
-        if (content.lastIndexOf(" ", start) != -1) {
-            prevPoint = content.lastIndexOf(" ", start);
-        } else prevPoint = start;
-        if (content.indexOf(" ", end + 30) != -1) {
-            lastPoint = content.indexOf(" ", end + 30);
-        } else lastPoint = content.indexOf(" ", end);
+        start = Math.max(0, start);
+        end = Math.min(content.length(), end);
+        int prevPoint = Math.max(0, content.lastIndexOf(" ", start - 1)); // Или другой способ поиска предыдущего пробела
+        int lastPoint = Math.min(content.length(), content.indexOf(" ", end + 30));
+        if (prevPoint == -1) {
+            prevPoint = 0;
+        }
+        if (lastPoint == -1 || lastPoint < end) {
+            lastPoint = content.length();
+        }
+
         String text = content.substring(prevPoint, lastPoint);
+
+        String word = content.substring(start, end);
         try {
             text = text.replaceAll(word, "<b>" + word + "</b>");
         } catch (Exception e) {
             log.error(e.getMessage());
         }
+
         return text;
     }
-
     private List<SearchData> searchDataOffset(List<SearchData> searchData, int offset, int limit) {
         int a = limit + offset;
         if (a > searchData.size()) {

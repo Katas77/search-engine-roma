@@ -42,15 +42,15 @@ cd docker
 docker-compose up
 ```
 ## Используемые технологии:
-- 🗃️ SQL
-- 🌐 Java
-- 🌿 Spring
-- 📜 Thymeleaf
-- 🐘 Postgresql
-- 🛠️ JPA (Hibernate)
-- 🔍 Jsoup: Java HTML parser
-- 🪡 Fork/Join Framework in Java
-- 🔐 Spring-boot-starter-security
+-  SQL 🗃️
+-  Java 🌐
+-  Spring 🌿
+-  Thymeleaf 📜
+-  Postgresql 🐘
+-  JPA (Hibernate) 🛠️
+-  Jsoup: Java HTML parser 🔍
+-  Fork/Join Framework in Java 🪡
+-  Spring-boot-starter-security  🔐
 
 ### IntelliJ IDEA
 

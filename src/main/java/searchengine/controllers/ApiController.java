@@ -81,7 +81,6 @@ public class ApiController {
     private boolean indexRepositoryEmpty() {
         searchData.add(new SearchData("-", "", "", "Данные еще не внесены в таблицу  «search_index», повторите запрос через 20 секунд ", "", 1));
         return indexRepository.findAll().size() < 25;
-
     }
 
 

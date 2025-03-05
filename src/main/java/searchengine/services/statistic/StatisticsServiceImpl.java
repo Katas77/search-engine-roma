@@ -11,10 +11,7 @@ import searchengine.model.Website;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

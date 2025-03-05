@@ -1,16 +1,16 @@
 package searchengine.utils.searchandLemma;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.english.EnglishLuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
-
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-@Slf4j
 @Component
 public class LemmaFinder {
     private static final String[] PARTICLES_NAMES = {"МЕЖД", "ПРЕДЛ", "СОЮЗ"};
@@ -18,78 +18,46 @@ public class LemmaFinder {
     private final LuceneMorphology luceneMorphologyEn = new EnglishLuceneMorphology();
 
     public LemmaFinder() throws IOException {
+        // Конструктор для инициализации морфологий
     }
 
     public Map<String, Integer> collectLemmas(String text) {
-        String[] words = arrayContainsRussianWords(text);
-        HashMap<String, Integer> lemmas = new HashMap<>();
-        for (String word : words) {
-            if (word.isBlank() | ((word.length() == 1) && (!word.toLowerCase(Locale.ROOT).equals("я")))) {
-                continue;
-            }
-            List<String> wordBaseForms = luceneMorphologyRu.getMorphInfo(word);
-            if (anyWordBaseBelongToParticle(wordBaseForms)) {
-                continue;
-            }
-            List<String> normalForms = luceneMorphologyRu.getNormalForms(word);
-            if (normalForms.isEmpty()) {
-                continue;
-            }
-            String normalWord = normalForms.get(0);
+        Map<String, Integer> lemmas = new HashMap<>();
 
-            if (lemmas.containsKey(normalWord)) {
-                lemmas.put(normalWord, lemmas.get(normalWord) + 1);
-            } else {
-                lemmas.put(normalWord, 1);
-            }
-        }
-        lemmas.putAll(collectLemmasEnglish(text));
+        lemmas.putAll(collectLemmasFromLanguage(text, luceneMorphologyRu, true));
+        lemmas.putAll(collectLemmasFromLanguage(text, luceneMorphologyEn, false));
+
         return lemmas;
     }
 
-    public Map<String, Integer> collectLemmasEnglish(String text) {
-        String[] words = arrayContainsEnglishWords(text);
-        HashMap<String, Integer> lemmas = new HashMap<>();
-        for (String word : words) {
-            if (word.isBlank() | ((word.length() == 1))) {
-                continue;
-            }
-            List<String> normalForms = luceneMorphologyEn.getNormalForms(word);
-            if (normalForms.isEmpty()) {
-                continue;
-            }
-            String normalWord = normalForms.get(0);
+    private Map<String, Integer> collectLemmasFromLanguage(String text, LuceneMorphology morphology, boolean isRussian) {
+        String[] words = isRussian ? extractRussianWords(text) : extractEnglishWords(text);
+        Map<String, Integer> lemmas = new HashMap<>();
 
-            if (lemmas.containsKey(normalWord)) {
-                lemmas.put(normalWord, lemmas.get(normalWord) + 1);
-            } else {
-                lemmas.put(normalWord, 1);
+        for (String word : words) {
+            if (isValidWord(word, isRussian)) {
+                List<String> normalForms = morphology.getNormalForms(word);
+                if (!normalForms.isEmpty()) {
+                    String normalWord = normalForms.get(0);
+                    lemmas.put(normalWord, lemmas.getOrDefault(normalWord, 0) + 1);
+                }
             }
         }
         return lemmas;
     }
 
-    private boolean anyWordBaseBelongToParticle(List<String> wordBaseForms) {
-        return wordBaseForms.stream().anyMatch(this::hasParticleProperty);
+    private boolean isValidWord(String word, boolean isRussian) {
+        return !word.isBlank() && !(isRussian && word.length() == 1 && !word.equalsIgnoreCase("я"));
     }
 
-    private boolean hasParticleProperty(String wordBase) {
-        for (String property : PARTICLES_NAMES) {
-            if (wordBase.toUpperCase().contains(property)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String[] arrayContainsEnglishWords(String text) {
+    private String[] extractEnglishWords(String text) {
         return text.toLowerCase(Locale.ROOT)
                 .replaceAll("([^a-z\\s])", " ")
                 .trim()
                 .split("\\s+");
     }
 
-    private String[] arrayContainsRussianWords(String text) {
+    private String[] extractRussianWords(String text) {
         return text.toLowerCase(Locale.ROOT)
                 .replaceAll("([^а-я\\s])", " ")
                 .trim()

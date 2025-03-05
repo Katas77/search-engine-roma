@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.stereotype.Service;
 import searchengine.color.Colors;
 import searchengine.model.*;
@@ -45,20 +43,19 @@ public class LexicalReducerImpl implements LexicalReducer {
             lock.lock();
             Page pageEntity =queue.poll(10, TimeUnit.SECONDS);//Если за 10 сек элемент так и не появился, метод вернет null.
             if ((pageEntity == null))
-            {      log.info(Colors.ANSI_RED+"Stopping indexing process. Please wait for the 'data saved' message within 10 seconds."+Colors.ANSI_RESET);
+            {      log.info(Colors.ANSI_RED+"Останавливаю процесс индексирования. Пожалуйста, подождите около 20 секунд, пока появится сообщение о возможности осуществления поиска."+Colors.ANSI_RESET);
                 break;}
-                collectedLemmas = lemmaFinder.collectLemmas(Jsoup.clean(pageEntity.getContent(), Safelist.simpleText()));
+                collectedLemmas = lemmaFinder.collectLemmas(cleanText(pageEntity.getContent()));
                 collectedLemmas.values().removeIf(Objects::isNull);
                 collectedLemmas.forEach((lemma, rank) -> {
                     Lemma lemmaEntity = createLemmaEntity(lemma, pageEntity.getSiteEntity());
                    Indexes index= new Indexes(pageEntity, lemmaEntity, rank);
                     indexEntities.add(index);
                     countIndexes++;
-                    log.info(Colors.ANSI_CYAN+"Adding index to collection:{}"+Colors.ANSI_RESET,pageEntity.getSiteEntity().toString());
                 });
         }
         saveDataToDatabase();
-        log.warn(logAboutEachSite());
+        log.warn(Colors.ANSI_PURPLE+ "Теперь можете осуществлять  поиск нужной информации"+Colors.ANSI_RESET);
         lock.unlock();
     }
 
@@ -91,12 +88,13 @@ public class LexicalReducerImpl implements LexicalReducer {
                 countLemmas, countIndexes, System.currentTimeMillis() - startTime);
     }
 
-    private String logAboutEachSite() {
-        return Colors.ANSI_PURPLE+countLemmas + " lemmas and " +
-                countIndexes + " indexes saved " +
-                "in DB from site with url. Тепеперь можете осуществлять  поиск нужной информации"+Colors.ANSI_RESET;
-    }
 
+    public String cleanText(String input) {
+        String cleaned = input.replaceAll("<[^>]*>", " ");
+        cleaned = cleaned.replaceAll("[^а-яА-ЯёЁa-zA-Z\\s]", " ");
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+        return cleaned;
+    }
 
 
 }

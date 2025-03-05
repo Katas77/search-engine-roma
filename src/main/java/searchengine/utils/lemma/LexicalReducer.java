@@ -11,10 +11,6 @@ public interface LexicalReducer {
     void setQueue(BlockingQueue<Page> queueOfPagesForLemmasCollecting);
 
     void startCollecting() throws InterruptedException;
-
-
-
-
 }
 
 

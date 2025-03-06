@@ -89,7 +89,7 @@ public class IndexerKit {
         } catch (DataIntegrityViolationException | ConcurrentModificationException e) {
             log.error("Exception occurred during lemma processing: {}", e.toString());
         }
-        latch.countDown();//await(), блокируется до тех пор, пока все операции не завершатся и счётчик не достигнет нуля.
+        latch.countDown();//метод countDown() метод уменьшает значение счётчика на единицу.
         log.warn("Lemmas thread finished, latch = {}", latch.getCount());
     }
 
@@ -100,7 +100,7 @@ public class IndexerKit {
         } catch (Exception e) {
             log.error("Exception occurred during recursive task execution: {}", e.toString());
         }
-        latch.countDown();//метод countDown(). Этот метод уменьшает значение счётчика на единицу.
+        latch.countDown();
         log.info("{} pages saved in DB.", pageRepository.countBySiteEntity(siteEntity));
         log.warn("Recursive thread finished, latch = {}", latch.getCount());
     }

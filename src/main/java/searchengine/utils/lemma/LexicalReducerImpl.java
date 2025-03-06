@@ -88,7 +88,6 @@ public class LexicalReducerImpl implements LexicalReducer {
                 countLemmas, countIndexes, System.currentTimeMillis() - startTime);
     }
 
-
     public String cleanText(String input) {
         String cleaned = input.replaceAll("<[^>]*>", " ");
         cleaned = cleaned.replaceAll("[^а-яА-ЯёЁa-zA-Z\\s]", " ");

@@ -4,10 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.english.EnglishMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;

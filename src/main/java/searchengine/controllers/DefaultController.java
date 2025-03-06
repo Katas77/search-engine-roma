@@ -14,7 +14,6 @@ public class DefaultController {
     @RequestMapping("/")
     public String index() {
 
-
         return "index";
     }
 }

@@ -18,7 +18,6 @@ public class LemmaFinder {
     private final LuceneMorphology luceneMorphologyEn = new EnglishLuceneMorphology();
 
     public LemmaFinder() throws IOException {
-        // Конструктор для инициализации морфологий
     }
 
     public Map<String, Integer> collectLemmas(String text) {
